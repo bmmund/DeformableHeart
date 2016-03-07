@@ -51,9 +51,17 @@ find_package(GLEW REQUIRED)
 #########################################################
 # FIND GLM
 #########################################################
-#   GLM_INCLUDE_DIRS  - where to find glm/glm.hpp
-#   GLM_FOUND         - if the library was successfully located
+# GLM_INCLUDE_DIRS  - where to find glm/glm.hpp
+# GLM_FOUND         - if the library was successfully located
 find_package(GLM REQUIRED)
+
+#########################################################
+# FIND Qt5
+#########################################################
+# Qt5Widgets_LIBRARIES      - librariers to link agianst Qt
+# Qt5Widgets_INCLUDE_DIRS   - include directories for Qt
+# Qt5Widgets_FOUND          - true it Qt5Widgets is found
+find_package(Qt5Widgets REQUIRED)
 
 set(MISSING "")
 
@@ -67,6 +75,10 @@ endif()
 
 if (NOT GLFW_FOUND)
     list(APPEND MISSING glfw)
+endif()
+
+if (NOT Qt5Widgets_FOUND)
+    list(APPEND MISSING Qt5Widgets)
 endif()
 
 if (NOT (MISSING STREQUAL ""))
