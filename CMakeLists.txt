@@ -1,0 +1,82 @@
+# CMakeLists files in this project can
+# refer to the root source directory of the project as ${HELLO_SOURCE_DIR} and
+# to the root binary directory of the project as ${HELLO_BINARY_DIR}.
+project (A2)
+cmake_minimum_required (VERSION 2.8.11)
+
+# this is the directory where the currently processed CMakeLists.txt is located in
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+# Set the directory where the executables will be stored.
+set(EXECUTABLE_OUTPUT_PATH
+    "${PROJECT_BINARY_DIR}/bin"
+    CACHE PATH
+    "Directory where executables will be stored"
+)
+#-------------------------------------------------------------------------------
+option(GLEW_LOCATION "Path to GLEW" "")
+option(GLFW_LOCATION "Path to GLFW" "")
+option(GLM_ROOT_DIR "Path to glm" "")
+
+#-------------------------------------------------------------------------------
+# Locate Dependancies
+#-------------------------------------------------------------------------------
+
+#########################################################
+# FIND GLFW
+#########################################################
+# GLFW_FOUND
+# GLFW_INCLUDE_DIR
+# GLFW_LIBRARIES
+find_package(GLFW REQUIRED)
+
+#########################################################
+# FIND OPENGL
+#########################################################
+# OPENGL_FOUND        - system has OpenGL
+# OPENGL_XMESA_FOUND  - system has XMESA
+# OPENGL_GLU_FOUND    - system has GLU
+# OPENGL_INCLUDE_DIR  - the GL include directory
+# OPENGL_LIBRARIES    - Link these to use OpenGL and GLU
+find_package(OpenGL REQUIRED)
+
+#########################################################
+# FIND GLEW
+#########################################################
+# GLEW_INCLUDE_DIRS - include directories for GLEW
+# GLEW_LIBRARIES - libraries to link against GLEW
+# GLEW_FOUND - true if GLEW has been found and can be used
+find_package(GLEW REQUIRED)
+
+#########################################################
+# FIND GLM
+#########################################################
+#   GLM_INCLUDE_DIRS  - where to find glm/glm.hpp
+#   GLM_FOUND         - if the library was successfully located
+find_package(GLM REQUIRED)
+
+set(MISSING "")
+
+if (NOT OPENGL_FOUND)
+    list(APPEND MISSING OpenGL)
+endif()
+
+if (NOT GLEW_FOUND)
+    list(APPEND MISSING glew)
+endif()
+
+if (NOT GLFW_FOUND)
+    list(APPEND MISSING glfw)
+endif()
+
+if (NOT (MISSING STREQUAL ""))
+    message(WARNING
+        "The following libraries could not be found : ${MISSING}.  "
+    )
+endif()
+
+# Recurse into the "Source" subdirectories. This does not actually cause another
+# cmake executable to run. The same process will walk through the project's
+# entire directory structure. Calling this here gives it access to the above
+# environment variables
+add_subdirectory (Source)
