@@ -3,7 +3,7 @@
 list(APPEND PLATFORM_SOURCES
     "main.cc"
 )
-add_executable (demo WIN32 MACOSX_BUNDLE ${PLATFORM_SOURCES} )
+add_executable (demo MACOSX_BUNDLE ${PLATFORM_SOURCES} )
 set(CMAKE_AUTOMOC ON)
 #-------------------------------------------------------------------------------
 # Dependancies
@@ -29,6 +29,11 @@ list(APPEND PLATFORM_INCLUDES
     "${GLM_INCLUDE_DIRS}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
     #"${Qt5Widgets_INCLUDE_DIRS}"
+)
+
+# required for visual studio for some reason
+include_directories(
+    "${GLFW_INCLUDE_DIR}"
 )
 
 target_include_directories(demo PUBLIC ${PLATFORM_INCLUDES})
