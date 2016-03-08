@@ -14,9 +14,6 @@ set(EXECUTABLE_OUTPUT_PATH
     "Directory where executables will be stored"
 )
 #-------------------------------------------------------------------------------
-option(GLEW_LOCATION "Path to GLEW" "")
-option(GLFW_LOCATION "Path to GLFW" "")
-option(GLM_ROOT_DIR "Path to glm" "")
 
 #-------------------------------------------------------------------------------
 # Locate Dependancies
@@ -61,7 +58,7 @@ find_package(GLM REQUIRED)
 # Qt5Widgets_LIBRARIES      - librariers to link agianst Qt
 # Qt5Widgets_INCLUDE_DIRS   - include directories for Qt
 # Qt5Widgets_FOUND          - true it Qt5Widgets is found
-find_package(Qt5Widgets REQUIRED)
+#find_package(Qt5Widgets REQUIRED)
 
 set(MISSING "")
 
@@ -77,9 +74,9 @@ if (NOT GLFW_FOUND)
     list(APPEND MISSING glfw)
 endif()
 
-if (NOT Qt5Widgets_FOUND)
-    list(APPEND MISSING Qt5Widgets)
-endif()
+#if (NOT Qt5Widgets_FOUND)
+#    list(APPEND MISSING Qt5Widgets)
+#endif()
 
 if (NOT (MISSING STREQUAL ""))
     message(WARNING

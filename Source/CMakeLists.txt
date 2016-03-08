@@ -15,7 +15,7 @@ list(APPEND PLATFORM_LIBRARIES
     "${GLFW_LIBRARIES}"
     "${OPENGL_LIBRARIES}"
     "${GLEW_LIBRARIES}"
-    "${Qt5Widgets_LIBRARIES}"
+    #"${Qt5Widgets_LIBRARIES}"
 
 )
 
@@ -28,7 +28,7 @@ list(APPEND PLATFORM_INCLUDES
     "${GLEW_INCLUDE_DIRS}"
     "${GLM_INCLUDE_DIRS}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${Qt5Widgets_INCLUDE_DIRS}"
+    #"${Qt5Widgets_INCLUDE_DIRS}"
 )
 
 target_include_directories(demo PUBLIC ${PLATFORM_INCLUDES})
