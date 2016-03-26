@@ -1,7 +1,12 @@
 # Declare the app name in the APP_NAME var
 set(APP_NAME demo)
 set(RESOURCE_DIR ${PROJECT_SOURCE_DIR}/Resources)
-set(APP_ICON_NAME "heart_icon.icns")
+if(APPLE)
+    set(APP_ICON_NAME "heart_icon.icns")
+endif()
+if(WIN32)
+    set(APP_ICON_NAME "res.rc")
+endif()
 set(APP_ICON_LOCATION ${RESOURCE_DIR}/${APP_ICON_NAME})
 #-------------------------------------------------------------------------------
 # Dependancies
