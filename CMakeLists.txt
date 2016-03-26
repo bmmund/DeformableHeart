@@ -1,8 +1,8 @@
 # CMakeLists files in this project can
 # refer to the root source directory of the project as ${HELLO_SOURCE_DIR} and
 # to the root binary directory of the project as ${HELLO_BINARY_DIR}.
-project (A2)
-cmake_minimum_required (VERSION 2.8.11)
+project (DeformableHeart)
+cmake_minimum_required (VERSION 3.1.3)
 
 # this is the directory where the currently processed CMakeLists.txt is located in
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")

@@ -1,29 +1,26 @@
-# Add executable called "helloDemo" that is built from the source files
-# "demo.cxx" and "demo_b.cxx". The extensions are automatically found.
-list(APPEND PLATFORM_SOURCES
-    "main.cc"
-)
-add_executable (demo MACOSX_BUNDLE ${PLATFORM_SOURCES} )
-set(CMAKE_AUTOMOC ON)
+# Declare the app name in the APP_NAME var
+set(APP_NAME demo)
+set(RESOURCE_DIR ${PROJECT_SOURCE_DIR}/Resources)
+set(APP_ICON_NAME "heart_icon.icns")
+set(APP_ICON_LOCATION ${RESOURCE_DIR}/${APP_ICON_NAME})
 #-------------------------------------------------------------------------------
 # Dependancies
 #-------------------------------------------------------------------------------
 #########################################################
 # Libs
 #########################################################
-list(APPEND PLATFORM_LIBRARIES
+list(APPEND LIBRARIES
     "${GLFW_LIBRARIES}"
     "${OPENGL_LIBRARIES}"
     "${GLEW_LIBRARIES}"
     #"${Qt5Widgets_LIBRARIES}"
-
 )
 
 #########################################################
 # Headers
 #########################################################
-list(APPEND PLATFORM_INCLUDES
-    "${GLFW_INCLUDE_DIRS}"
+list(APPEND INCLUDES_DIRS
+    "${GLFW_INCLUDE_DIR}"
     "${OPENGL_INCLUDE_DIR}"
     "${GLEW_INCLUDE_DIRS}"
     "${GLM_INCLUDE_DIRS}"
@@ -31,14 +28,30 @@ list(APPEND PLATFORM_INCLUDES
     #"${Qt5Widgets_INCLUDE_DIRS}"
 )
 
-# required for visual studio for some reason
-include_directories(
-    "${GLFW_INCLUDE_DIR}"
+#-------------------------------------------------------------------------------
+# DEMO App
+#-------------------------------------------------------------------------------
+list(APPEND SRCS
+    main
 )
 
-target_include_directories(demo PUBLIC ${PLATFORM_INCLUDES})
-target_link_libraries(demo ${PLATFORM_LIBRARIES})
+list(APPEND HEADERS
+)
 
-set_target_properties(demo PROPERTIES
-MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/OSX/MacOSXBundleInfo.plist.in")
-set_target_properties(demo PROPERTIES AUTOMOC TRUE)
+add_executable (${APP_NAME} ${SRCS} ${HEADERS} ${APP_ICON_LOCATION})
+target_include_directories(${APP_NAME} PUBLIC ${INCLUDES_DIRS})
+target_link_libraries(${APP_NAME} ${LIBRARIES})
+set_property(TARGET ${APP_NAME} PROPERTY CXX_STANDARD 11)
+# set(CMAKE_AUTOMOC ON)
+if(APPLE)
+    set_target_properties(${APP_NAME} PROPERTIES MACOSX_BUNDLE true)
+    set_target_properties(${APP_NAME} PROPERTIES
+                        MACOSX_BUNDLE_INFO_PLIST
+                        "${CMAKE_CURRENT_SOURCE_DIR}/OSX/MacOSXBundleInfo.plist.in")
+    set_target_properties(${APP_NAME} PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME ${APP_NAME})
+    set_target_properties(${APP_NAME} PROPERTIES MACOSX_BUNDLE_ICON_FILE ${APP_ICON_NAME})
+
+    set_source_files_properties(${APP_ICON_LOCATION}
+                                PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+endif()
+# set_target_properties(${APP_NAME} PROPERTIES AUTOMOC TRUE)
