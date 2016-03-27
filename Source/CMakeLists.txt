@@ -30,6 +30,7 @@ list(APPEND INCLUDES_DIRS
     "${GLEW_INCLUDE_DIRS}"
     "${GLM_INCLUDE_DIRS}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/system"
     #"${Qt5Widgets_INCLUDE_DIRS}"
 )
 
@@ -37,10 +38,14 @@ list(APPEND INCLUDES_DIRS
 # DEMO App
 #-------------------------------------------------------------------------------
 list(APPEND SRCS
-    main
+    main.cc
+    system/app.cc
+    system/DefoHeart.cc
 )
 
 list(APPEND HEADERS
+    system/app.hpp
+    system/DefoHeart.hpp
 )
 
 add_executable (${APP_NAME} ${SRCS} ${HEADERS} ${APP_ICON_LOCATION})
