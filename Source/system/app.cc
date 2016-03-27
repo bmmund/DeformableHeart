@@ -126,14 +126,14 @@ void App::run()
         deltaTime = t - time;
         time = t;
 
-        // execute the frame code
+        // Poll and process events
+        glfwPollEvents();
+
+        // rendering code
         loop();
 
-        // Swap Front and Back buffers (double buffering)
+        // Swap buffers
         glfwSwapBuffers(window);
-
-        // Pool and process events
-        glfwPollEvents();
     }
     glfwDestroyWindow(window);
     glfwTerminate();
