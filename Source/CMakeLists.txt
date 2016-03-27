@@ -12,12 +12,18 @@ set(APP_ICON_LOCATION ${RESOURCE_DIR}/${APP_ICON_NAME})
 # Dependancies
 #-------------------------------------------------------------------------------
 #########################################################
+# Build Render-App Engine
+#########################################################
+add_subdirectory(render_core)
+
+#########################################################
 # Libs
 #########################################################
 list(APPEND LIBRARIES
     "${GLFW_LIBRARIES}"
     "${OPENGL_LIBRARIES}"
     "${GLEW_LIBRARIES}"
+    "${RENDER_CORE_LIB}"
     #"${Qt5Widgets_LIBRARIES}"
 )
 
@@ -39,13 +45,11 @@ list(APPEND INCLUDES_DIRS
 #-------------------------------------------------------------------------------
 list(APPEND SRCS
     main.cc
-    system/app.cc
-    system/DefoHeart.cc
+    DefoHeart.cc
 )
 
 list(APPEND HEADERS
-    system/app.hpp
-    system/DefoHeart.hpp
+    DefoHeart.hpp
 )
 
 add_executable (${APP_NAME} ${SRCS} ${HEADERS} ${APP_ICON_LOCATION})
