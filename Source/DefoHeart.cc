@@ -35,6 +35,14 @@ void DefoHeart::keyCallbackImp(GLFWwindow* window, int key, int scancode, int ac
         glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
+void DefoHeart::mousePositionCallbackImp(GLFWwindow* window, double xpos, double ypos)
+{
+}
+
+void DefoHeart::mouseClickCallbackImp(GLFWwindow* window, int button, int action, int mods)
+{
+}
+
 void DefoHeart::updateGeometries()
 {
     float ratio;

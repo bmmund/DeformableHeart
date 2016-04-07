@@ -33,6 +33,16 @@ void App::keyCallback(GLFWwindow* window, int key, int scancode, int action, int
     getInstance().keyCallbackImp(window, key, scancode, action, mods);
 }
 
+void App::mousePositionCallback(GLFWwindow* window, double xpos, double ypos)
+{
+    getInstance().mousePositionCallbackImp(window, xpos, ypos);
+}
+
+void App::mouseClickCallback(GLFWwindow* window, int button, int action, int mods)
+{
+    getInstance().mouseClickCallbackImp(window, button, action, mods);
+}
+
 App::App( int _width, int _height, std::string _title ):
     width(_width),
     height(_height),
@@ -83,6 +93,8 @@ App::App( int _width, int _height, std::string _title ):
     // Setup GLFW callbacks
     glfwSetWindowSizeCallback(window, App::windowSizeCallback);
     glfwSetKeyCallback(window, App::keyCallback);
+    glfwSetCursorPosCallback(window, App::mousePositionCallback);
+    glfwSetMouseButtonCallback(window, App::mouseClickCallback);
     // opengl configuration
 //    glEnable (GL_DEPTH_TEST); // enable depth-testing
 //    glDepthFunc (GL_LESS); // depth-testing interprets a smaller value as "closer"
@@ -155,6 +167,13 @@ void App::keyCallbackImp(GLFWwindow* window, int key, int scancode, int action, 
         glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
+void App::mousePositionCallbackImp(GLFWwindow* window, double xpos, double ypos)
+{
+}
+
+void App::mouseClickCallbackImp(GLFWwindow* window, int button, int action, int mods)
+{
+}
 
 void App::loop()
 {

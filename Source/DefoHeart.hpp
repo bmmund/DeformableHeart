@@ -11,6 +11,8 @@ public:
     void loop();
 private:
     void keyCallbackImp(GLFWwindow* window, int key, int scancode, int action, int mods);
+    void mousePositionCallbackImp(GLFWwindow* window, double xpos, double ypos);
+    void mouseClickCallbackImp(GLFWwindow* window, int button, int action, int mods);
     void updateGeometries();
 
 };
