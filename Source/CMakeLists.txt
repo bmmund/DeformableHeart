@@ -19,6 +19,7 @@ set(APP_ICON_LOCATION ${RESOURCE_DIR}/${APP_ICON_NAME})
 # Build Render-App Engine
 #########################################################
 add_subdirectory(render_core)
+add_subdirectory(trackball)
 
 #########################################################
 # Libs
@@ -28,11 +29,12 @@ list(APPEND LIBRARIES
     "${OPENGL_LIBRARIES}"
     "${GLEW_LIBRARIES}"
     "${RENDER_CORE_LIB}"
+    "${TRACKBALL_LIB}"
     #"${Qt5Widgets_LIBRARIES}"
 )
 
 #########################################################
-# Headers
+# Headerss
 #########################################################
 list(APPEND INCLUDES_DIRS
     "${GLFW_INCLUDE_DIR}"
@@ -40,7 +42,6 @@ list(APPEND INCLUDES_DIRS
     "${GLEW_INCLUDE_DIRS}"
     "${GLM_INCLUDE_DIRS}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/system"
     #"${Qt5Widgets_INCLUDE_DIRS}"
 )
 
