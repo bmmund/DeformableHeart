@@ -50,14 +50,17 @@ App::App( int _width, int _height, std::string _title ):
         throw std::runtime_error("Couldn't init GLFW");
     }
 
-    // set opengl to v 3.3 core
-    int major = 3;
-    int minor = 3;
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
+    #if defined(USE_OPENGL_LEGACY)
+        glfwDefaultWindowHints();
+    #else
+        // set opengl to v 3.3 core
+        int major = 3;
+        int minor = 3;
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    #endif
     // create the window
     window = glfwCreateWindow( width, height, title.c_str(), nullptr, nullptr);
     if (!window)

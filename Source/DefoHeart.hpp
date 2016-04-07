@@ -11,6 +11,7 @@ public:
     void loop();
 private:
     void keyCallbackImp(GLFWwindow* window, int key, int scancode, int action, int mods);
+    void updateGeometries();
 
 };
 #endif /* __DEFO_HEART__HPP */
