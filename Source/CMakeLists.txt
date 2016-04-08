@@ -15,10 +15,12 @@ set(APP_ICON_LOCATION ${RESOURCE_DIR}/${APP_ICON_NAME})
 #-------------------------------------------------------------------------------
 # Dependancies
 #-------------------------------------------------------------------------------
+option(OPENMESH_BUILD_SHARED OFF)
 #########################################################
 # Build Render-App Engine
 #########################################################
 add_subdirectory(render_core)
+add_subdirectory(OpenMesh)
 
 #########################################################
 # Libs
@@ -28,9 +30,10 @@ list(APPEND LIBRARIES
     "${OPENGL_LIBRARIES}"
     "${GLEW_LIBRARIES}"
     "${RENDER_CORE_LIB}"
+    "${OpenMeshCore}"
     #"${Qt5Widgets_LIBRARIES}"
 )
-
+message(STATUS "OPENMESH_INCLUDE_DIRS ${OPENMESH_INCLUDE_DIRS}")
 #########################################################
 # Headers
 #########################################################
@@ -39,6 +42,7 @@ list(APPEND INCLUDES_DIRS
     "${OPENGL_INCLUDE_DIR}"
     "${GLEW_INCLUDE_DIRS}"
     "${GLM_INCLUDE_DIRS}"
+    "${OPENMESH_INCLUDE_DIRS}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/system"
     #"${Qt5Widgets_INCLUDE_DIRS}"
