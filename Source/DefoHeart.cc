@@ -8,9 +8,9 @@ int const windowHeight = 480;
 std::string const application_name = "DefoHeart";
 
 DefoHeart::DefoHeart()
-    : App(windowWidth, windowHeight, application_name)
+    : App(windowWidth, windowHeight, application_name),
+      mesh(HEART_MESH_PATH)
 {
-    
 }
 
 DefoHeart::~DefoHeart()

@@ -5,13 +5,18 @@ endif()
 # Declare the app name in the APP_NAME var
 set(APP_NAME demo)
 set(RESOURCE_DIR ${PROJECT_SOURCE_DIR}/Resources)
+
 if(APPLE)
     set(APP_ICON_NAME "heart_icon.icns")
 endif()
 if(WIN32)
     set(APP_ICON_NAME "res.rc")
 endif()
+
 set(APP_ICON_LOCATION ${RESOURCE_DIR}/${APP_ICON_NAME})
+set(HEART_MESH_NAME "Heart_Final_Flat.obj")
+set(HEART_MESH_LOCATION ${RESOURCE_DIR}/${HEART_MESH_NAME})
+add_definitions(-DHEART_MESH_PATH="${HEART_MESH_LOCATION}")
 #-------------------------------------------------------------------------------
 # Dependancies
 #-------------------------------------------------------------------------------
@@ -52,10 +57,12 @@ list(APPEND INCLUDES_DIRS
 list(APPEND SRCS
     main.cc
     DefoHeart.cc
+    HeartMesh.cc
 )
 
 list(APPEND HEADERS
     DefoHeart.hpp
+    HeartMesh.hpp
 )
 
 add_executable (${APP_NAME} ${SRCS} ${HEADERS} ${APP_ICON_LOCATION})
