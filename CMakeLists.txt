@@ -60,6 +60,15 @@ find_package(GLM REQUIRED)
 # Qt5Widgets_FOUND          - true it Qt5Widgets is found
 #find_package(Qt5Widgets REQUIRED)
 
+#########################################################
+# FIND OpenMesh
+#########################################################
+# OPENMESH_FOUND           - system has OPENMESH
+# OPENMESH_INCLUDE_DIRS    - the OPENMESH include directories
+# OPENMESH_LIBRARIES       - Link these to use OPENMESH
+# OPENMESH_LIBRARY_DIR     - directory where the libraries are included
+find_package(OpenMesh REQUIRED)
+
 set(MISSING "")
 
 if (NOT OPENGL_FOUND)
@@ -77,6 +86,10 @@ endif()
 #if (NOT Qt5Widgets_FOUND)
 #    list(APPEND MISSING Qt5Widgets)
 #endif()
+
+if (NOT OPENMESH_FOUND)
+    list(APPEND MISSING OpenMesh)
+endif()
 
 if (NOT (MISSING STREQUAL ""))
     message(WARNING
