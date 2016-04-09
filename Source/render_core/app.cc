@@ -43,6 +43,11 @@ void App::mouseClickCallback(GLFWwindow* window, int button, int action, int mod
     getInstance().mouseClickCallbackImp(window, button, action, mods);
 }
 
+void App::scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	getInstance().scrollCallbackImp(window, xoffset, yoffset);
+}
+
 App::App( int _width, int _height, std::string _title ):
     width(_width),
     height(_height),
@@ -95,6 +100,7 @@ App::App( int _width, int _height, std::string _title ):
     glfwSetKeyCallback(window, App::keyCallback);
     glfwSetCursorPosCallback(window, App::mousePositionCallback);
     glfwSetMouseButtonCallback(window, App::mouseClickCallback);
+	glfwSetScrollCallback(window, App::scrollCallback);
     // opengl configuration
 //    glEnable (GL_DEPTH_TEST); // enable depth-testing
 //    glDepthFunc (GL_LESS); // depth-testing interprets a smaller value as "closer"
@@ -172,6 +178,10 @@ void App::mousePositionCallbackImp(GLFWwindow* window, double xpos, double ypos)
 }
 
 void App::mouseClickCallbackImp(GLFWwindow* window, int button, int action, int mods)
+{
+}
+
+void App::scrollCallbackImp(GLFWwindow* window, double xoffset, double yoffset)
 {
 }
 

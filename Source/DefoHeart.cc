@@ -16,6 +16,7 @@ float zvec;
 double angle;
 double prevX;
 double prevY;
+double scaleval = 1;
 bool rotating;
 std::string const application_name = "DefoHeart";
 
@@ -75,6 +76,18 @@ void DefoHeart::mouseClickCallbackImp(GLFWwindow* window, int button, int action
 	}
 }
 
+void DefoHeart::scrollCallbackImp(GLFWwindow* window, double xoffset, double yoffset)
+{
+	if (yoffset > 0)
+	{
+		scaleval = 1.1;
+	}
+	else
+	{
+		scaleval = 0.9;
+	}
+}
+
 void DefoHeart::updateGeometries()
 {
     float ratio;
@@ -92,6 +105,7 @@ void DefoHeart::updateGeometries()
     glLoadIdentity();
     //glRotatef((float) glfwGetTime() * 50.f, 0.f, 0.f, 1.f);
 	glPopMatrix();
+	glScalef(scaleval, scaleval, scaleval);
 	glRotatef(angle, xvec, yvec, zvec);
 	glPushMatrix();
 
@@ -105,4 +119,5 @@ void DefoHeart::updateGeometries()
     glEnd();
     glFlush();
 	angle = 0;
+	scaleval = 1;
 }
