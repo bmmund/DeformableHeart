@@ -15,7 +15,8 @@ HeartMesh::HeartMesh(std::string filename)
     {
         std::cout<<"verts:"<<mesh.n_vertices()<<std::endl;
     }
-
+    // Make sure we have vertex normals
+    mesh.request_vertex_normals();
 }
 
 HeartMesh::~HeartMesh()

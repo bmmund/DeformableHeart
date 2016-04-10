@@ -12,6 +12,7 @@ class HeartMesh
 public:
     HeartMesh(std::string filename);
     ~HeartMesh();
+    TriMesh* getTriMesh(){return &mesh;}
 private:
     std::string fname;
     TriMesh mesh;
