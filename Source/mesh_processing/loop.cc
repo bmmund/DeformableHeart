@@ -39,20 +39,20 @@ void Loop::teardownMeshProperties(TriMesh *mesh)
 void Loop::setVertexVertexPositions(TriMesh* mesh)
 {
     TriMesh::VertexIter vertIter;
-    TriMesh::Point pos(0.0, 0.0, 0.0);
 
     for(vertIter = mesh->vertices_begin(); vertIter != mesh->vertices_end(); ++vertIter)
     {
+        TriMesh::Point pos(0.0, 0.0, 0.0);
         // Two cases: boundary or non-boundary vertex
         if(mesh->is_boundary(*vertIter))
         {
             //TODO: support boundary verts
             std::cout<<"boundary verts!\n";
+            return;
         }
         else
         {
             int valence = mesh->valence(*vertIter);
-            std::cout<<"valence:"<<valence<<std::endl;
             float alpha = getWeight(valence);
             TriMesh::VertexVertexIter vertVertIter;
             // alpha * SUM(Vj)
@@ -63,14 +63,11 @@ void Loop::setVertexVertexPositions(TriMesh* mesh)
                 pos += mesh->point(*vertVertIter);
             }
             pos = alpha * pos;
-            std::cout<<"vert sum:"<<pos;
             // add vertex contribution
             pos += (1 - (valence*alpha) ) * mesh->point(*vertIter);
-            std::cout<<" vert contr:"<<((1 - (valence*alpha) ) * mesh->point(*vertIter))<<std::endl;
         }
         // add calculated value to vertex-vertex
         mesh->property(vertPoint, *vertIter) = pos;
-        std::cout<<"orig:"<<mesh->point(*vertIter)<<" new:"<<pos<<std::endl;
     }
 }
 
