@@ -24,6 +24,7 @@ add_definitions(-DHEART_MESH_PATH="${HEART_MESH_LOCATION}")
 # Build Render-App Engine
 #########################################################
 add_subdirectory(render_core)
+add_subdirectory(mesh_processing)
 
 #########################################################
 # Libs
@@ -33,6 +34,7 @@ list(APPEND LIBRARIES
     "${OPENGL_LIBRARIES}"
     "${GLEW_LIBRARIES}"
     "${RENDER_CORE_LIB}"
+    "${MESH_PROCESSING_LIB}"
     "${OPENMESH_LIBRARIES}"
     #"${Qt5Widgets_LIBRARIES}"
 )

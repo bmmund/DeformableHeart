@@ -3,6 +3,7 @@
 
 #include "app.hpp"
 #include "HeartMesh.hpp"
+#include "loop.hpp"
 
 class DefoHeart : public App
 {
@@ -12,6 +13,7 @@ public:
     void loop();
 private:
     HeartMesh mesh;
+    Loop subDivider;
     void initializeGL();
     void updateGeometries();
     void drawMesh();

@@ -10,7 +10,8 @@ std::string const application_name = "DefoHeart";
 
 DefoHeart::DefoHeart()
     : App(windowWidth, windowHeight, application_name),
-      mesh(HEART_MESH_PATH)
+      mesh(HEART_MESH_PATH),
+      subDivider()
 {
     initializeGL();
 }
@@ -128,8 +129,13 @@ void DefoHeart::initializeGL()
 
 void DefoHeart::keyCallbackImp(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
+    else if(key == GLFW_KEY_S && action == GLFW_PRESS)
+    {
+        subDivider.subdivide(mesh.getTriMesh());
+    }
+
 }
 
 void DefoHeart::mousePositionCallbackImp(GLFWwindow* window, double xpos, double ypos)
