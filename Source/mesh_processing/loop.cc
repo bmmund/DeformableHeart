@@ -18,6 +18,8 @@ void Loop::subdivide(TriMesh *mesh)
     setupMeshProperties(mesh);
     // Find vertex-vertex positions
     setVertexVertexPositions(mesh);
+    // Find edge-vertex positions
+    setEdgeVertexPositions(mesh);
     // Apply geometry changes
     updateGeometries(mesh);
     // remove subdivision attributes
@@ -68,6 +70,49 @@ void Loop::setVertexVertexPositions(TriMesh* mesh)
         }
         // add calculated value to vertex-vertex
         mesh->property(vertPoint, *vertIter) = pos;
+    }
+}
+
+void Loop::setEdgeVertexPositions(TriMesh* mesh)
+{
+    TriMesh::EdgeIter edgeIter;
+    TriMesh::VertexHandle vertex;
+    TriMesh::HalfedgeHandle halfEdge;
+    TriMesh::HalfedgeHandle oppHalfEdge;
+
+    for( edgeIter = mesh->edges_begin();
+        edgeIter != mesh->edges_end();
+        ++edgeIter)
+    {
+        halfEdge = mesh->halfedge_handle( *edgeIter, 0);
+        oppHalfEdge = mesh->halfedge_handle( *edgeIter, 1);
+
+        TriMesh::Point pos(0.0, 0.0, 0.0);
+        if(mesh->is_boundary(*edgeIter))
+        {
+            //TODO: support boundary edges
+            std::cout<<"boundary edge!\n";
+            return;
+        }
+        else
+        {
+            TriMesh::Point v1v2(0.0, 0.0, 0.0);
+            TriMesh::Point v3v4(0.0, 0.0, 0.0);
+            // E` = (3/8)* [V1 + V2] + (1/8)*[V3 + V4]
+            vertex = mesh->to_vertex_handle(halfEdge);
+            v1v2 = mesh->point(vertex); // V1
+
+            vertex = mesh->to_vertex_handle(oppHalfEdge);
+            v1v2 += mesh->point(vertex); // V1 + V2
+
+            vertex = mesh->to_vertex_handle(mesh->next_halfedge_handle(halfEdge));
+            v3v4 = mesh->point(vertex); // V3
+
+            vertex = mesh->to_vertex_handle(mesh->next_halfedge_handle(oppHalfEdge));
+            v3v4 += mesh->point(vertex); // V3 + V4
+            pos = (3.0/8.0)*v1v2 + (1.0/8.0)*v3v4;
+        }
+        mesh->property(edgePoint, *edgeIter) = pos;
     }
 }
 

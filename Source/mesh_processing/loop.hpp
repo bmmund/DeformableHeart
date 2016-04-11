@@ -20,6 +20,7 @@ private:
     void setupMeshProperties(TriMesh* mesh);
     void teardownMeshProperties(TriMesh* mesh);
     void setVertexVertexPositions(TriMesh* mesh);
+    void setEdgeVertexPositions(TriMesh* mesh);
     float getWeight(int valence);
     void updateGeometries(TriMesh* mesh);
 
