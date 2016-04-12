@@ -27,7 +27,7 @@ void Loop::subdivide(TriMesh *mesh)
     // Split faces
     splitFaces(mesh);
     // Apply geometry changes
-//    updateGeometries(mesh);
+    updateGeometries(mesh);
     // remove subdivision attributes
     teardownMeshProperties(mesh);
 }
