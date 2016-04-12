@@ -1,6 +1,8 @@
 #include "loop.hpp"
 #include <cmath>
 #include <iostream>
+#include <vector>
+
 Loop::Loop()
 {
 
@@ -22,6 +24,8 @@ void Loop::subdivide(TriMesh *mesh)
     setEdgeVertexPositions(mesh);
     // Split edge to create new vert
     splitEdges(mesh);
+    // Split faces
+    splitFaces(mesh);
     // Apply geometry changes
 //    updateGeometries(mesh);
     // remove subdivision attributes
@@ -230,6 +234,95 @@ void Loop::splitEdge(TriMesh* mesh, const TriMesh::EdgeHandle& _eh)
     mesh->adjust_outgoing_halfedge(evh);
     mesh->adjust_outgoing_halfedge(vh1);
     mesh->adjust_outgoing_halfedge(vh2);
+}
+
+void Loop::splitFaces(TriMesh* mesh)
+{
+    TriMesh::FaceIter fit, f_end;
+    f_end   = mesh->faces_end();
+    for (fit = mesh->faces_begin(); fit != f_end; ++fit)
+    {
+        TriMesh::FaceVertexIter vit;
+        std::vector<TriMesh::HalfedgeHandle> hehHandles;
+        TriMesh::FaceHalfedgeIter hehIter;
+        // Find the 3 half edges we care about splitting
+        for(hehIter = mesh->fh_iter(*fit); hehIter.is_valid(); ++hehIter)
+        {
+            TriMesh::HalfedgeHandle heh(*hehIter);
+            if(!mesh->property(isEdgeVertex, mesh->from_vertex_handle(heh)))
+               {
+                   hehHandles.push_back(heh);
+               }
+        }
+        if(hehHandles.size() != 3)
+        {
+            std::cerr<<"Edges not properly split!\n";
+            return;
+        }
+        else
+        {
+            for(int i = 0; i < hehHandles.size(); i++)
+            {
+                TriMesh::HalfedgeHandle heh(hehHandles[i]);
+                splitCorner( mesh, &heh );
+            }
+        }
+    }
+}
+
+
+void Loop::splitCorner(TriMesh* mesh, TriMesh::HalfedgeHandle* he)
+{
+
+    TriMesh::HalfedgeHandle heh1, heh2, heh3, heh4, heh5, heh6;
+
+    // heh1 = input half edge, belongs to new face
+    heh1 = *he;
+    // cycle around half edges until we have last half edge (belongs to new face)
+    for(heh3 = heh1;
+        mesh->next_halfedge_handle(heh3) != heh1;
+        heh3 = mesh->next_halfedge_handle(heh3)
+        )
+    {}
+    heh5 = mesh->next_halfedge_handle(heh1);
+    // cycle around half edges until we have second last half edge
+    // (belongs to old face)
+    for(heh6 = heh5;
+        mesh->next_halfedge_handle(heh6) != heh3;
+        heh6 = mesh->next_halfedge_handle(heh6)
+        )
+    {}
+
+    // Create old (f1) and new(f2) face handles
+    TriMesh::FaceHandle f1h(mesh->face_handle(heh1));
+    TriMesh::FaceHandle f2h(mesh->new_face());
+
+    // Edge vertices for new edge
+    TriMesh::VertexHandle ev1h(mesh->to_vertex_handle(heh1));
+    TriMesh::VertexHandle ev2h(mesh->to_vertex_handle(mesh->opposite_halfedge_handle(heh3)));
+
+    // create new edge
+    heh2 = mesh->new_edge(ev1h, ev2h);
+    heh4 = mesh->opposite_halfedge_handle(heh2);
+
+    // update F1 half edges
+    mesh->set_next_halfedge_handle(heh4, heh5);
+    mesh->set_next_halfedge_handle(heh6, heh4);
+    mesh->set_face_handle(heh4, f1h);
+    mesh->set_halfedge_handle(f1h, heh4); // heh4 is now the f1 reference
+
+    // update F2 half edges
+    mesh->set_next_halfedge_handle(heh1, heh2);
+    mesh->set_next_halfedge_handle(heh2, heh3);
+    mesh->set_face_handle(heh1, f2h);
+    mesh->set_face_handle(heh2, f2h);
+    mesh->set_face_handle(heh3, f2h);
+    mesh->set_halfedge_handle(f2h, heh2); // heh4 is now the f1 reference
+
+    // Based on open mesh documentation we must update outgoing halfedges
+    // whenever topology is changed.
+    mesh->adjust_outgoing_halfedge(ev1h);
+    mesh->adjust_outgoing_halfedge(ev2h);
 }
 
 float Loop::getWeight(int valence)

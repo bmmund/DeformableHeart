@@ -25,6 +25,8 @@ private:
     void compute_midpoint(TriMesh* mesh, const TriMesh::EdgeHandle& _eh);
     void splitEdges(TriMesh* mesh);
     void splitEdge(TriMesh* mesh, const TriMesh::EdgeHandle& _eh);
+    void splitFaces(TriMesh* mesh);
+    void splitCorner(TriMesh* mesh, TriMesh::HalfedgeHandle* he);
     float getWeight(int valence);
     void updateGeometries(TriMesh* mesh);
 
