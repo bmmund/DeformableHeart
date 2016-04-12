@@ -211,6 +211,7 @@ void Loop::splitEdge(TriMesh* mesh, const TriMesh::EdgeHandle& _eh)
     heh4 = mesh->new_edge(evh, vh1);  // from evh to vh1
     mesh->set_face_handle(heh4, f2h);
     mesh->set_halfedge_handle(f2h, heh4);
+    mesh->set_halfedge_handle(evh, heh4);
     mesh->set_next_halfedge_handle(heh4, mesh->next_halfedge_handle(heh2));
 
     // Setup new heh3
@@ -226,9 +227,9 @@ void Loop::splitEdge(TriMesh* mesh, const TriMesh::EdgeHandle& _eh)
 
     // Based on open mesh documentation we must update outgoing halfedges
     // whenever topology is changed.
-    mesh->adjust_outgoing_halfedge( evh );
-    mesh->adjust_outgoing_halfedge( vh1 );
-    mesh->adjust_outgoing_halfedge( vh2 );
+    mesh->adjust_outgoing_halfedge(evh);
+    mesh->adjust_outgoing_halfedge(vh1);
+    mesh->adjust_outgoing_halfedge(vh2);
 }
 
 float Loop::getWeight(int valence)
