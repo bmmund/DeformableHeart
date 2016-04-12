@@ -142,21 +142,28 @@ void Loop::splitEdges(TriMesh *mesh)
 
 void Loop::splitEdge(TriMesh* mesh, const TriMesh::EdgeHandle& _eh)
 {
-    TriMesh::HalfedgeHandle
-    heh1 = mesh->halfedge_handle(_eh, 0),
+    // original half edge of edge to split
+    TriMesh::HalfedgeHandle heh1, heh2;
+    heh1 = mesh->halfedge_handle(_eh, 0);
     heh2 = mesh->halfedge_handle(_eh, 1);
 
-    TriMesh::HalfedgeHandle heh3, heh4, heh_ext;
     TriMesh::VertexHandle   evh;
     TriMesh::VertexHandle   vh1(mesh->to_vertex_handle(heh2));
     TriMesh::VertexHandle   vh2(mesh->to_vertex_handle(heh1));
+
+    // Face handles for updating half-edge face reference
     TriMesh::FaceHandle     f1h(mesh->face_handle(heh1));
     TriMesh::FaceHandle     f2h(mesh->face_handle(heh2));
+
+    // additional half edge handles for splitting
+    TriMesh::HalfedgeHandle heh3, heh4, heh_ext;
+
+    // find midpoint of edge
     TriMesh::Point          midP(mesh->point(vh1));
     midP += mesh->point(vh2);
     midP *= 0.5;
 
-    // new edge-vertex
+    // new edge-vertex at midpoint
     evh = mesh->new_vertex( midP );
 
     // retrieve position stored in edge and store in vertex for later
