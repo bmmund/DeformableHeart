@@ -136,7 +136,7 @@ void Loop::splitEdges(TriMesh *mesh)
         edgeIter != e_end;
         ++edgeIter)
     {
-        split_edge(mesh, *edgeIter);
+        splitEdge(mesh, *edgeIter);
     }
 }
 
