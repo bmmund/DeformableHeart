@@ -16,11 +16,15 @@ public:
 private:
     OpenMesh::VPropHandleT<TriMesh::Point> vertPoint;
     OpenMesh::EPropHandleT<TriMesh::Point> edgePoint;
+    OpenMesh::VPropHandleT<bool> isEdgeVertex;
 
     void setupMeshProperties(TriMesh* mesh);
     void teardownMeshProperties(TriMesh* mesh);
     void setVertexVertexPositions(TriMesh* mesh);
     void setEdgeVertexPositions(TriMesh* mesh);
+    void compute_midpoint(TriMesh* mesh, const TriMesh::EdgeHandle& _eh);
+    void splitEdges(TriMesh* mesh);
+    void split_edge(TriMesh* mesh, const TriMesh::EdgeHandle& _eh);
     float getWeight(int valence);
     void updateGeometries(TriMesh* mesh);
 

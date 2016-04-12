@@ -20,8 +20,10 @@ void Loop::subdivide(TriMesh *mesh)
     setVertexVertexPositions(mesh);
     // Find edge-vertex positions
     setEdgeVertexPositions(mesh);
+    // Split edge to create new vert
+    splitEdges(mesh);
     // Apply geometry changes
-    updateGeometries(mesh);
+//    updateGeometries(mesh);
     // remove subdivision attributes
     teardownMeshProperties(mesh);
 }
@@ -30,12 +32,14 @@ void Loop::setupMeshProperties(TriMesh *mesh)
 {
     mesh->add_property(vertPoint, "vv_prop");
     mesh->add_property(edgePoint, "ev_prop");
+    mesh->add_property(isEdgeVertex);
 }
 
 void Loop::teardownMeshProperties(TriMesh *mesh)
 {
     mesh->remove_property(vertPoint);
     mesh->remove_property(edgePoint);
+    mesh->remove_property(isEdgeVertex);
 }
 
 void Loop::setVertexVertexPositions(TriMesh* mesh)
@@ -70,6 +74,7 @@ void Loop::setVertexVertexPositions(TriMesh* mesh)
         }
         // add calculated value to vertex-vertex
         mesh->property(vertPoint, *vertIter) = pos;
+        mesh->property( isEdgeVertex, *vertIter ) = false;
     }
 }
 
@@ -114,6 +119,109 @@ void Loop::setEdgeVertexPositions(TriMesh* mesh)
         }
         mesh->property(edgePoint, *edgeIter) = pos;
     }
+}
+
+void Loop::splitEdges(TriMesh *mesh)
+{
+    TriMesh::EdgeIter edgeIter,e_end;
+    TriMesh::HalfedgeHandle halfEdge;
+    TriMesh::HalfedgeHandle oppHalfEdge;
+    TriMesh::VertexHandle newVertex, vh1;
+    TriMesh::Point midPoint(0.0, 0.0, 0.0);
+    TriMesh::HalfedgeHandle new_heh, opp_new_heh, t_heh;
+    // Split each edge at mid-point and store calculated position in property.
+    // Vertex location will be updated later.
+    e_end = mesh->edges_end();
+    for( edgeIter = mesh->edges_begin();
+        edgeIter != e_end;
+        ++edgeIter)
+    {
+        split_edge(mesh, *edgeIter);
+    }
+}
+
+void Loop::split_edge(TriMesh* mesh, const TriMesh::EdgeHandle& _eh)
+{
+    TriMesh::HalfedgeHandle
+    heh1 = mesh->halfedge_handle(_eh, 0),
+    heh2 = mesh->halfedge_handle(_eh, 1);
+
+    TriMesh::HalfedgeHandle heh3, heh4, heh_ext;
+    TriMesh::VertexHandle   evh;
+    TriMesh::VertexHandle   vh1(mesh->to_vertex_handle(heh2));
+    TriMesh::VertexHandle   vh2(mesh->to_vertex_handle(heh1));
+    TriMesh::FaceHandle     f1h(mesh->face_handle(heh1));
+    TriMesh::FaceHandle     f2h(mesh->face_handle(heh2));
+    TriMesh::Point          midP(mesh->point(vh1));
+    midP += mesh->point(vh2);
+    midP *= 0.5;
+
+    // new edge-vertex
+    evh = mesh->new_vertex( midP );
+
+    // retrieve position stored in edge and store in vertex for later
+    mesh->property( vertPoint, evh ) = mesh->property( edgePoint, _eh );
+    mesh->property( isEdgeVertex, evh ) = true;
+
+    // get incomming half edge
+    if(mesh->is_boundary(_eh))
+    {
+        //TODO: support boundary edges
+        std::cout<<"boundary edge not supported!\n";
+        return;
+    }
+    else
+    {
+        for(heh_ext = mesh->next_halfedge_handle(heh1);
+             mesh->next_halfedge_handle(heh_ext) != heh1;
+             heh_ext = mesh->next_halfedge_handle(heh_ext) )
+        {}
+    }
+//-----------------------------------------------------------------
+//             f1h
+//            heh1                heh_ext (points to heh1 as next)
+//       <--------------      <--------
+//  v2h o---------------o v1h
+//       -------------->
+//            heh2
+//             f2h
+//
+//-----------------------------------------------------------------
+//      After edge split
+//-----------------------------------------------------------------
+//
+//             f1h
+//        heh1'     heh3         heh_ext (points to heh3 as next)
+//        <------  <------       <--------
+//    v2h o-------o-------o v1h
+//                evh
+//         ------> ------>
+//         heh2'   heh4
+//             f2h
+//-----------------------------------------------------------------
+
+    // Setup new heh4
+    heh4 = mesh->new_edge(evh, vh1);  // from evh to vh1
+    mesh->set_face_handle(heh4, f2h);
+    mesh->set_halfedge_handle(f2h, heh4);
+    mesh->set_next_halfedge_handle(heh4, mesh->next_halfedge_handle(heh2));
+
+    // Setup new heh3
+    heh3 = mesh->opposite_halfedge_handle(heh4);
+    mesh->set_face_handle(heh3, f1h);
+    mesh->set_halfedge_handle(f1h, heh3);
+    mesh->set_next_halfedge_handle(heh_ext, heh3);
+    mesh->set_next_halfedge_handle(heh3, heh1);
+
+    // update what heh2 points to
+    mesh->set_vertex_handle(heh2, evh);
+    mesh->set_next_halfedge_handle(heh2, heh4);
+
+    // Based on open mesh documentation we must update outgoing halfedges
+    // whenever topology is changed.
+    mesh->adjust_outgoing_halfedge( evh );
+    mesh->adjust_outgoing_halfedge( vh1 );
+    mesh->adjust_outgoing_halfedge( vh2 );
 }
 
 float Loop::getWeight(int valence)
