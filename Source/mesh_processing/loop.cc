@@ -140,7 +140,7 @@ void Loop::splitEdges(TriMesh *mesh)
     }
 }
 
-void Loop::split_edge(TriMesh* mesh, const TriMesh::EdgeHandle& _eh)
+void Loop::splitEdge(TriMesh* mesh, const TriMesh::EdgeHandle& _eh)
 {
     TriMesh::HalfedgeHandle
     heh1 = mesh->halfedge_handle(_eh, 0),

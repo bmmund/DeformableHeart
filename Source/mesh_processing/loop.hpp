@@ -24,7 +24,7 @@ private:
     void setEdgeVertexPositions(TriMesh* mesh);
     void compute_midpoint(TriMesh* mesh, const TriMesh::EdgeHandle& _eh);
     void splitEdges(TriMesh* mesh);
-    void split_edge(TriMesh* mesh, const TriMesh::EdgeHandle& _eh);
+    void splitEdge(TriMesh* mesh, const TriMesh::EdgeHandle& _eh);
     float getWeight(int valence);
     void updateGeometries(TriMesh* mesh);
 
