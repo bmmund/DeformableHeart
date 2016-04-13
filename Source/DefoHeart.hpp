@@ -16,6 +16,9 @@ private:
     HeartMesh mesh;
     Loop subDivider;
     glm::mat4 modelM;
+//    glm::vec4 point;
+//    glm::vec4 vect(0,0,-1,0.f);
+    int selectedIdx;
     void initializeGL();
     void updateGeometries();
     void drawMesh();

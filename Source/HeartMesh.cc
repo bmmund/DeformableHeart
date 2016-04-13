@@ -16,7 +16,11 @@ HeartMesh::HeartMesh(std::string filename)
         std::cout<<"verts:"<<mesh.n_vertices()<<std::endl;
     }
     // Make sure we have vertex normals
+    mesh.request_face_normals();
     mesh.request_vertex_normals();
+    TriMesh::VertexIter v_it(mesh.vertices_begin());
+    for(; v_it != mesh.vertices_end(); ++v_it)
+        mesh.calc_vertex_normal(*v_it);
 }
 
 HeartMesh::~HeartMesh()
