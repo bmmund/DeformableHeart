@@ -48,9 +48,10 @@ void DefoHeart::updateGeometries()
     glMatrixMode(GL_MODELVIEW);
 
     glLoadIdentity();
-    glRotatef((float) glfwGetTime() * 50.f, 1.f, 0.f, 0.f);
+    glRotatef((float) glfwGetTime() * 50.f, 0.f, 1.f, 0.f);
+    glRotatef( 270, 1.f, 0.f, 0.f);
     glScalef(0.01,0.01,0.01);
-
+    glTranslatef(0, 0, -50);
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     glEnable( GL_POLYGON_OFFSET_FILL );
     glPolygonOffset( 1, 1 );
