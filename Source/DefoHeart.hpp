@@ -17,13 +17,18 @@ private:
     Loop subDivider;
     glm::mat4 modelM;
     glm::mat4 projM;
-
+    bool useNormal;
+    bool useLighting;
 //    glm::vec4 point;
 //    glm::vec4 vect(0,0,-1,0.f);
     int selectedIdx;
+    void setDefaultMaterial(void);
+    void setHeartMaterial();
+    void setDefaultLight(void);
     void initializeGL();
     void updateGeometries();
     void drawMesh();
+    void drawMeshNormals();
     void drawMeshPoints();
     void drawMeshPoint(int index);
     void keyCallbackImp(GLFWwindow* window, int key, int scancode, int action, int mods);

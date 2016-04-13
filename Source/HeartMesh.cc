@@ -5,9 +5,16 @@ HeartMesh::HeartMesh(std::string filename)
     : fname(filename),
       mesh()
 {
+    mesh.request_vertex_normals();
+    mesh.request_face_normals();
+    OpenMesh::IO::Options opt;
+    opt += OpenMesh::IO::Options::VertexColor;
+    opt += OpenMesh::IO::Options::VertexNormal;
+    opt += OpenMesh::IO::Options::FaceColor;
+    opt += OpenMesh::IO::Options::FaceNormal;
     std::cout<<"filename:"<< fname<<std::endl;
     // read mesh from stdin
-    if ( ! OpenMesh::IO::read_mesh(mesh, fname.c_str()) )
+    if ( ! OpenMesh::IO::read_mesh(mesh, fname.c_str(), opt) )
     {
         std::cerr << "Error: Cannot read mesh from " << fname << std::endl;
     }
@@ -15,12 +22,8 @@ HeartMesh::HeartMesh(std::string filename)
     {
         std::cout<<"verts:"<<mesh.n_vertices()<<std::endl;
     }
-    // Make sure we have vertex normals
-    mesh.request_face_normals();
-    mesh.request_vertex_normals();
-    TriMesh::VertexIter v_it(mesh.vertices_begin());
-    for(; v_it != mesh.vertices_end(); ++v_it)
-        mesh.calc_vertex_normal(*v_it);
+    mesh.update_normals();
+
 }
 
 HeartMesh::~HeartMesh()
