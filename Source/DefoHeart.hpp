@@ -4,6 +4,7 @@
 #include "app.hpp"
 #include "HeartMesh.hpp"
 #include "loop.hpp"
+#include <glm/glm.hpp>
 
 class DefoHeart : public App
 {
@@ -14,6 +15,7 @@ public:
 private:
     HeartMesh mesh;
     Loop subDivider;
+    glm::mat4 modelM;
     void initializeGL();
     void updateGeometries();
     void drawMesh();

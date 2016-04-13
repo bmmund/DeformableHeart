@@ -5,19 +5,12 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <glm/gtc/matrix_transform.hpp>
 
 using namespace std;
 
 int const windowWidth = 640;
 int const windowHeight = 480;
-float xvec;
-float yvec;
-float zvec;
-double angle;
-double prevX;
-double prevY;
-double scaleval = 1;
-bool rotating;
 std::string const application_name = "DefoHeart";
 
 DefoHeart::DefoHeart()
@@ -58,18 +51,12 @@ void DefoHeart::updateGeometries()
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
-    glMatrixMode(GL_MODELVIEW);
 
+    glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-//    glRotatef((float) glfwGetTime() * 50.f, 0.f, 1.f, 0.f);
+    glMultMatrixf(&(modelM[0][0]));
 
-    glRotatef( 270, 1.f, 0.f, 0.f);
-    glScalef(0.01,0.01,0.01);
-    glTranslatef(0, 0, -50);
-    glPopMatrix();
-    glRotatef(angle, xvec, yvec, zvec);
-	glPushMatrix();
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     glEnable( GL_POLYGON_OFFSET_FILL );
     glPolygonOffset( 1, 1 );
@@ -144,6 +131,10 @@ void DefoHeart::initializeGL()
 {
     // OpenGL state
     glEnable(GL_DEPTH_TEST);
+    modelM = glm::mat4(1.0);
+    modelM = glm::rotate(modelM, -90.0f, glm::vec3(1.f, 0, 0));
+    modelM = glm::scale(modelM, glm::vec3(0.009));
+    modelM = glm::translate(modelM, glm::vec3(0, 0, -50));
 }
 
 void DefoHeart::keyCallbackImp(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -154,52 +145,66 @@ void DefoHeart::keyCallbackImp(GLFWwindow* window, int key, int scancode, int ac
     {
         subDivider.subdivide(mesh.getTriMesh());
     }
+    else if(key == GLFW_KEY_R && action == GLFW_PRESS)
+    {
+        modelM = glm::rotate(modelM, 15.0f, glm::vec3(1.f, 0.f, 0.f));
+    }
 
 }
 
 void DefoHeart::mousePositionCallbackImp(GLFWwindow* window, double xpos, double ypos)
 {
-	if (rotating)
+    static int prevX = xpos;
+    static int prevY= ypos;
+    float fDiameter;
+    int iCenterX, iCenterY;
+    float fNewModX, fNewModY, fOldModX, fOldModY;
+    float fRotVecX, fRotVecY, fRotVecZ;
+    glm::mat4 rotationM;
+    /* vCalcRotVec expects new and old positions in relation to the center of the
+     * trackball circle which is centered in the middle of the window and
+     * half the smaller of nWinWidth or nWinHeight.
+     */
+    fDiameter = (getWidth() < getHeight()) ? getWidth() * 0.7 : getHeight() * 0.7;
+    iCenterX = getWidth() / 2;
+    iCenterY = getHeight() / 2;
+    fOldModX = prevX - iCenterX;
+    fOldModY = prevY - iCenterY;
+    fNewModX = xpos - iCenterX;
+    fNewModY = ypos - iCenterY;
+    int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+    int shiftKey = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT);
+	if( (state == GLFW_PRESS) && (shiftKey == GLFW_PRESS) )
 	{
-		angle = 1;
-		float diameter = (windowWidth < windowHeight) ? windowWidth * 0.5 : windowHeight * 0.5;
-		vCalcRotVec((xpos-(windowWidth/2)), (ypos - (windowHeight / 2)),
-			(prevX - (windowWidth / 2)), (prevY - (windowHeight / 2)),
-			diameter,
-			&xvec, &yvec, &zvec);
-		prevX = xpos;
-		prevY = ypos;
+        vCalcRotVec(fNewModX, fNewModY,
+                    fOldModX, fOldModY,
+                    fDiameter,
+                    &fRotVecX, &fRotVecY, &fRotVecZ);
+        vAxisRotMatrix(fRotVecX, -fRotVecY, fRotVecZ, rotationM);
+        modelM = rotationM * modelM;
 	}
     else
     {
-        angle = 0;
-        xvec = 0;
-        yvec = 0;
-        zvec = 0;
+        rotationM = glm::mat4(1.0);
     }
+    prevX = xpos;
+    prevY = ypos;
 }
 
 void DefoHeart::mouseClickCallbackImp(GLFWwindow* window, int button, int action, int mods)
 {
-	if (button == 0 && action == 1)
-	{
-		rotating = true;
-		glfwGetCursorPos(window, &prevX, &prevY);
-	}
-	if (button == 0 && action == 0)
-	{
-		rotating = false;
-	}
 }
 
 void DefoHeart::scrollCallbackImp(GLFWwindow* window, double xoffset, double yoffset)
 {
 	if (yoffset > 0)
 	{
-		scaleval = 1.1;
+        glm::mat4 scaling = glm::scale(glm::mat4(1.0), glm::vec3(1.1));
+        modelM = scaling * modelM;
 	}
 	else
 	{
-		scaleval = 0.9;
+		glm::mat4 scaling = glm::scale(glm::mat4(1.0), glm::vec3(0.9));
+        modelM = scaling * modelM;
 	}
 }

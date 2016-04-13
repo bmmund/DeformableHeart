@@ -1,6 +1,4 @@
-//#include <math.h>
-#include <glm/glm.hpp>
-
+#include <math.h>
 #include "trackball.hpp"
 
 /*******************************************************
@@ -110,7 +108,7 @@ void vCalcRotVec(float fNewX, float fNewY,
  *                       0,1, and 2).
  *
  *******************************************************/
-void vAxisRotMatrix(float fVecX, float fVecY, float fVecZ, glm::mat4 mNewMat) {
+void vAxisRotMatrix(float fVecX, float fVecY, float fVecZ, glm::mat4& mNewMat) {
     float fRadians, fInvLength, fNewVecX, fNewVecY, fNewVecZ;
 
     /* Find the length of the vector which is the angle of rotation
