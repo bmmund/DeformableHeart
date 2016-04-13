@@ -3,7 +3,6 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <string>
-#include <sstream>
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
 
