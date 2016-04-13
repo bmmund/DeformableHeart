@@ -11,6 +11,7 @@ using namespace std;
 int const windowWidth = 640;
 int const windowHeight = 480;
 std::string const application_name = "DefoHeart";
+const double TRACKBALL_RADIUS = 4;
 
 DefoHeart::DefoHeart()
     : App(windowWidth, windowHeight, application_name),
@@ -50,9 +51,11 @@ void DefoHeart::updateGeometries()
     glViewport(0, 0, width, height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+//    glOrtho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+    projM = glm::ortho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
 //    glOrtho(-1.f, 1.f, -1.f, 1.f, 1.f, -1.f);
-
+//    glMultMatrixf(&(projM[0][0]));
+    glLoadMatrixf(&(projM[0][0]));
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
@@ -63,7 +66,7 @@ void DefoHeart::updateGeometries()
     glEnd();
 
 
-    glMultMatrixf(&(modelM[0][0]));
+    glLoadMatrixf(&(modelM[0][0]));
 
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     glEnable( GL_POLYGON_OFFSET_FILL );
@@ -185,93 +188,111 @@ void DefoHeart::keyCallbackImp(GLFWwindow* window, int key, int scancode, int ac
 
 void DefoHeart::mousePositionCallbackImp(GLFWwindow* window, double xpos, double ypos)
 {
-    static int prevX = xpos;
-    static int prevY= ypos;
-    float fDiameter;
-    int iCenterX, iCenterY;
-    float fNewModX, fNewModY, fOldModX, fOldModY;
-    float fRotVecX, fRotVecY, fRotVecZ;
-    glm::mat4 rotationM;
-    /* vCalcRotVec expects new and old positions in relation to the center of the
-     * trackball circle which is centered in the middle of the window and
-     * half the smaller of nWinWidth or nWinHeight.
-     */
-    fDiameter = (getWidth() < getHeight()) ? getWidth() * 0.7 : getHeight() * 0.7;
-    iCenterX = getWidth() / 2;
-    iCenterY = getHeight() / 2;
-    fOldModX = prevX - iCenterX;
-    fOldModY = prevY - iCenterY;
-    fNewModX = xpos - iCenterX;
-    fNewModY = ypos - iCenterY;
-    int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+    glm::vec2 newPoint2D(xpos, ypos);
+    OpenMesh::Vec3f  newPoint3D;
+    bool   newPoint_hitSphere = map_to_sphere( newPoint2D, newPoint3D );
+    int mouseState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
     int shiftKey = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT);
-	if( (state == GLFW_PRESS) && (shiftKey == GLFW_PRESS) )
-	{
-        vCalcRotVec(fNewModX, fNewModY,
-                    fOldModX, fOldModY,
-                    fDiameter,
-                    &fRotVecX, &fRotVecY, &fRotVecZ);
-        vAxisRotMatrix(fRotVecX, -fRotVecY, fRotVecZ, rotationM);
-        modelM = rotationM * modelM;
-	}
-    else
+    // rotate
+    if ( mouseState && shiftKey)
     {
-        rotationM = glm::mat4(1.0);
+        if (last_point_ok_) {
+            if ((newPoint_hitSphere = map_to_sphere(newPoint2D, newPoint3D))) {
+                OpenMesh::Vec3f axis = last_point_3D_ % newPoint3D;
+                if (axis.sqrnorm() < 1e-7) {
+                    axis = OpenMesh::Vec3f(1, 0, 0);
+                } else {
+                    axis.normalize();
+                }
+                // find the amount of rotation
+                OpenMesh::Vec3f d = last_point_3D_ - newPoint3D;
+                float t = 0.5 * d.norm() / TRACKBALL_RADIUS;
+                if (t < -1.0)
+                    t = -1.0;
+                else if (t > 1.0)
+                    t = 1.0;
+                float phi = 2.0 * asin(t);
+                float angle = phi * 180.0 / M_PI;
+                glm::vec3 axisRot(axis[0], axis[1], axis[2]);
+                glm::mat4 rotationM;
+                rotationM = glm::rotate(rotationM, -angle, axisRot);
+                modelM = rotationM * modelM;
+            }
+        }
     }
-    prevX = xpos;
-    prevY = ypos;
+    // remember this point
+    last_point_2D_ = newPoint2D;
+    last_point_3D_ = newPoint3D;
+    last_point_ok_ = newPoint_hitSphere;
 }
 
 void DefoHeart::mouseClickCallbackImp(GLFWwindow* window, int button, int action, int mods)
 {
+        double mouseX,mouseY;
+        glfwGetCursorPos(window, &mouseX, &mouseY);
     if(action == GLFW_PRESS)
     {
+        int shiftKey = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT);
         if(button == GLFW_MOUSE_BUTTON_2)
         {
             selectedIdx = -1;
         }
-        else
+        else if(button == GLFW_MOUSE_BUTTON_1)
         {
-            double mouseX,mouseY;
-            glm::vec4 point;
-            glm::vec4 vect(0,0,-1,0.f);
-            float dist;
-            float tempDist;
-            glfwGetCursorPos(window, &mouseX, &mouseY);
-            point.x = ((mouseX/getWidth())*2.0f)-1;
-            point.y = ((mouseY/getHeight())*(-2.0f))+1;
-            point.z = 1.f;
-            point.w = 1.f;
-            std::cout<<"point:"<< point.x<<" "<< point.y<< " "<< point.z<<std::endl;
-        //    vect
-            // for all verts in mesh, get closest intersection
-            glm::mat4 inverseModel = glm::inverse(modelM);
-            point = point*inverseModel;
-            std::cout<<"point new:"<< point.x<<" "<< point.y<< " "<< point.z<<std::endl;
-            TriMesh* meshPtr = mesh.getTriMesh();
-            TriMesh::VertexIter v_it(meshPtr->vertices_sbegin());
-            TriMesh::VertexHandle _vh(*v_it);
-            TriMesh::Point p = meshPtr->point(_vh);
-            glm::vec3 rayOrgToPoint(p[0],p[1],p[2]);
-            rayOrgToPoint = rayOrgToPoint - glm::vec3(point);
-            rayOrgToPoint = glm::normalize(rayOrgToPoint);
-            dist = glm::length(glm::cross(glm::vec3(vect), rayOrgToPoint));
-            cout<<"length:"<<dist<<std::endl;
-            for(;v_it != meshPtr->vertices_end(); ++v_it)
+            if(shiftKey)
             {
-                p = meshPtr->point(*v_it);
+                last_point_2D_.x = mouseX;
+                last_point_2D_.y = mouseY;
+                last_point_ok_ = map_to_sphere( last_point_2D_, last_point_3D_ );
+            }
+            else
+            {
+                double mouseX,mouseY;
+                glm::vec4 point;
+                glm::vec4 vect(0,0,-1,0.f);
+                float dist;
+                float tempDist;
+                glfwGetCursorPos(window, &mouseX, &mouseY);
+                point.x = ((mouseX/getWidth())*2.0f)-1;
+                point.y = ((mouseY/getHeight())*(-2.0f))+1;
+                point.z = 1.f;
+                point.w = 1.f;
+                std::cout<<"point:"<< point.x<<" "<< point.y<< " "<< point.z<<std::endl;
+            //    vect
+                // for all verts in mesh, get closest intersection
+                glm::mat4 inverseModel = glm::inverse(modelM);
+                glm::mat4 inverseProj = glm::inverse(projM);
+                point = point * inverseProj;
+                point = point*inverseModel;
+
+                vect = vect * inverseProj;
+                vect = vect * inverseModel;
+                std::cout<<"point new:"<< point.x<<" "<< point.y<< " "<< point.z<<std::endl;
+                TriMesh* meshPtr = mesh.getTriMesh();
+                TriMesh::VertexIter v_it(meshPtr->vertices_sbegin());
+                TriMesh::VertexHandle _vh(*v_it);
+                TriMesh::Point p = meshPtr->point(_vh);
                 glm::vec3 rayOrgToPoint(p[0],p[1],p[2]);
                 rayOrgToPoint = rayOrgToPoint - glm::vec3(point);
                 rayOrgToPoint = glm::normalize(rayOrgToPoint);
-                tempDist = glm::length(glm::cross(glm::vec3(vect), rayOrgToPoint));
-                if(tempDist<dist)
+                dist = glm::length(glm::cross(glm::vec3(vect), rayOrgToPoint));
+                cout<<"length:"<<dist<<std::endl;
+                for(;v_it != meshPtr->vertices_end(); ++v_it)
                 {
-                    dist = tempDist;
-                    _vh = *v_it;
+                    p = meshPtr->point(*v_it);
+                    glm::vec3 rayOrgToPoint(p[0],p[1],p[2]);
+                    rayOrgToPoint = rayOrgToPoint - glm::vec3(point);
+                    rayOrgToPoint = glm::normalize(rayOrgToPoint);
+                    tempDist = glm::length(glm::cross(glm::vec3(vect), rayOrgToPoint));
+                    if(tempDist<dist)
+                    {
+                        dist = tempDist;
+                        _vh = *v_it;
+                    }
                 }
+                cout<<"closest vert at vert "<<_vh.idx()<<std::endl;
+                selectedIdx = _vh.idx();
             }
-            cout<<"closest vert at vert "<<_vh.idx()<<std::endl;
-            selectedIdx = _vh.idx();
         }
     }
 }
@@ -288,4 +309,26 @@ void DefoHeart::scrollCallbackImp(GLFWwindow* window, double xoffset, double yof
 		glm::mat4 scaling = glm::scale(glm::mat4(1.0), glm::vec3(0.9));
         modelM = scaling * modelM;
 	}
+}
+
+bool DefoHeart::map_to_sphere( const glm::vec2& _v2D, OpenMesh::Vec3f& _v3D )
+{
+    // This is actually doing the Sphere/Hyperbolic sheet hybrid thing,
+    // based on Ken Shoemake's ArcBall in Graphics Gems IV, 1993.
+    double x =  (2.0*_v2D.x - getWidth())/getWidth();
+    double y = -(2.0*_v2D.y - getHeight())/getHeight();
+    double xval = x;
+    double yval = y;
+    double x2y2 = xval*xval + yval*yval;
+
+    const double rsqr = TRACKBALL_RADIUS*TRACKBALL_RADIUS;
+    _v3D[0] = xval;
+    _v3D[1] = yval;
+    if (x2y2 < 0.5*rsqr) {
+        _v3D[2] = sqrt(rsqr - x2y2);
+    } else {
+        _v3D[2] = 0.5*rsqr/sqrt(x2y2);
+    }
+
+    return true;
 }
