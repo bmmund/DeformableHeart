@@ -169,6 +169,7 @@ void Loop::splitEdge(TriMesh* mesh, const TriMesh::EdgeHandle& _eh)
 
     // new edge-vertex at midpoint
     evh = mesh->new_vertex( midP );
+    mesh->set_normal(evh, mesh->normal(vh1));
 
     // retrieve position stored in edge and store in vertex for later
     mesh->property( vertPoint, evh ) = mesh->property( edgePoint, _eh );
@@ -349,4 +350,5 @@ void Loop::updateGeometries(TriMesh* mesh)
     {
         mesh->set_point(*vertIter, mesh->property(vertPoint, *vertIter));
     }
+    mesh->update_normals();
 }
