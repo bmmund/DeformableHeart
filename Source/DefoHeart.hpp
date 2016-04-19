@@ -16,11 +16,12 @@ private:
     HeartMesh mesh;
     Loop subDivider;
     glm::mat4 modelM;
+    glm::mat4 viewM;
     glm::mat4 projM;
+    glm::vec3 cameraOrigin;
     bool useNormal;
     bool useLighting;
-//    glm::vec4 point;
-//    glm::vec4 vect(0,0,-1,0.f);
+
     int selectedIdx;
     void setDefaultMaterial(void);
     void setHeartMaterial();
@@ -31,6 +32,8 @@ private:
     void drawMeshNormals();
     void drawMeshPoints();
     void drawMeshPoint(int index);
+    void drawModelGnomenPoints();
+    bool intersect(glm::vec4 &ray_dir, glm::vec4 &ray_origin, glm::vec4 &center, float &t_out);
     void keyCallbackImp(GLFWwindow* window, int key, int scancode, int action, int mods);
     void mousePositionCallbackImp(GLFWwindow* window, double xpos, double ypos);
     void mouseClickCallbackImp(GLFWwindow* window, int button, int action, int mods);

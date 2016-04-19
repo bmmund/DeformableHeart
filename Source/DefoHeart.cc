@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
+#include "polyroots.h"
 
 using namespace std;
 
@@ -54,21 +55,16 @@ void DefoHeart::updateGeometries()
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 //    glOrtho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
-    projM = glm::ortho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+//    projM = glm::ortho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+    projM = glm::perspective(45.0f, ratio, 0.1f, 100.0f);
 //    glOrtho(-1.f, 1.f, -1.f, 1.f, 1.f, -1.f);
 //    glMultMatrixf(&(projM[0][0]));
     glLoadMatrixf(&(projM[0][0]));
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    glPointSize(5);
-        glColor3f(0.4f, 0.f, 1.f);
-    glBegin(GL_POINTS);
-    glVertex3f(0, 0, 0);
-    glEnd();
-
-
-    glLoadMatrixf(&(modelM[0][0]));
+    glm::mat4 modelViewM = viewM * modelM;
+    glLoadMatrixf(&(modelViewM[0][0]));
 
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     glEnable( GL_POLYGON_OFFSET_FILL );
@@ -86,10 +82,14 @@ void DefoHeart::updateGeometries()
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     glColor3f(1.0, 1.0, 1.0);
     drawMeshPoints();
+
+    //    glColor3f(0.f, 1.f, 0.f);
+    //    drawMeshNormals();
+
+    drawModelGnomenPoints();
+
     if(useLighting)
         glEnable(GL_LIGHTING);
-//    glColor3f(0.f, 1.f, 0.f);
-//    drawMeshNormals();
     glFlush();
 }
 
@@ -172,6 +172,20 @@ void DefoHeart::drawMeshPoint(int index)
     glEnd();
 }
 
+void DefoHeart::drawModelGnomenPoints()
+{
+    glPointSize(5);
+    glBegin(GL_POINTS);
+    glColor3f(0.4f, 0.f, 1.f);
+    glVertex3f(0, 0, 0);
+    glColor3f(1.f, 0.f, 0.f);
+    glVertex3f(1.f, 0, 0);
+    glColor3f(0.f, 1.f, 0.f);
+    glVertex3f(0, 1.0f, 0);
+    glColor3f(0.f, 0.f, 1.f);
+    glVertex3f(0, 0, 1.f);
+    glEnd();
+}
 //----------------------------------------------------------------------------
 
 void DefoHeart::setDefaultMaterial(void)
@@ -240,7 +254,7 @@ void DefoHeart::initializeGL()
     // OpenGL state
     glEnable(GL_DEPTH_TEST);
     glShadeModel(GL_FLAT);
-glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHTING);
     // Material
     setDefaultMaterial();
 
@@ -258,7 +272,8 @@ glEnable(GL_LIGHTING);
     glFogf(GL_FOG_END,     25.0f);
 
     modelM = glm::mat4(1.0);
-    modelM = glm::translate(modelM, glm::vec3(0, -0.5, 0));
+    cameraOrigin = glm::vec3(0.f, 2.f, 2.f);
+    viewM = glm::lookAt(cameraOrigin, glm::vec3(0,0,0), glm::vec3(0,1,0));
 }
 
 void DefoHeart::keyCallbackImp(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -352,7 +367,7 @@ void DefoHeart::mousePositionCallbackImp(GLFWwindow* window, double xpos, double
                 float angle = phi * 180.0 / M_PI;
                 glm::vec3 axisRot(axis[0], axis[1], axis[2]);
                 glm::mat4 rotationM;
-                rotationM = glm::rotate(rotationM, -angle, axisRot);
+                rotationM = glm::rotate(rotationM, angle, axisRot);
                 modelM = rotationM * modelM;
             }
         }
@@ -362,10 +377,34 @@ void DefoHeart::mousePositionCallbackImp(GLFWwindow* window, double xpos, double
     last_point_3D_ = newPoint3D;
     last_point_ok_ = newPoint_hitSphere;
 }
+bool DefoHeart::intersect(glm::vec4 &ray_dir, glm::vec4 &ray_origin, glm::vec4 &center, float &t_out)
+{
+    static float const radius2 = 0.0005f;
+    double t[] = {0,0}; // solution(s) to sphere intersection
+    glm::vec4 L = ray_origin - center;
+    double a = glm::dot(ray_dir, ray_dir);
+    double b = 2 * glm::dot(ray_dir, L);
+    double c = glm::dot(L,L) - (radius2);
+    int roots = (int)quadraticRoots(a, b, c, t);
+    if (!roots) return false;
+
+    // order roots such that t0 is less than t1
+    if (t[0] > t[1]) std::swap(t[0], t[1]);
+
+    // make sure that the roots are not negative
+    if (t[0] < 0) {
+        t[0] = t[1]; // if t0 is negative, let's use t1 instead
+        if (t[0] < 0) return false; // both t0 and t1 are negative
+    }
+    t_out = t[0];
+    return true;
+}
 
 void DefoHeart::mouseClickCallbackImp(GLFWwindow* window, int button, int action, int mods)
 {
         double mouseX,mouseY;
+        int wwidth, wheight;
+        glfwGetWindowSize(window, &wwidth, &wheight);
         glfwGetCursorPos(window, &mouseX, &mouseY);
     if(action == GLFW_PRESS)
     {
@@ -384,51 +423,54 @@ void DefoHeart::mouseClickCallbackImp(GLFWwindow* window, int button, int action
             }
             else
             {
-                double mouseX,mouseY;
-                glm::vec4 point;
-                glm::vec4 vect(0,0,-1,0.f);
                 float dist;
                 float tempDist;
-                glfwGetCursorPos(window, &mouseX, &mouseY);
-                point.x = ((mouseX/getWidth())*2.0f)-1;
-                point.y = ((mouseY/getHeight())*(-2.0f))+1;
-                point.z = 1.f;
-                point.w = 1.f;
-                std::cout<<"point:"<< point.x<<" "<< point.y<< " "<< point.z<<std::endl;
-            //    vect
-                // for all verts in mesh, get closest intersection
-                glm::mat4 inverseModel = glm::inverse(modelM);
-                glm::mat4 inverseProj = glm::inverse(projM);
-                point = point * inverseProj;
-                point = point*inverseModel;
+                dist = numeric_limits<float>::infinity();
 
-                vect = vect * inverseProj;
-                vect = vect * inverseModel;
-                std::cout<<"point new:"<< point.x<<" "<< point.y<< " "<< point.z<<std::endl;
+                // Get normalized device coordinates of ray
+                glm::vec3 ray_nds;
+                ray_nds.x = (2.0f * mouseX) / getWidth() - 1.0f;
+                ray_nds.y = 1.0f - (2.0f * mouseY) / getHeight();
+                ray_nds.z = 1.0f;
+
+                // Get clip space coordinates of ray
+                glm::vec4 ray_clip(ray_nds.x, ray_nds.y, -1.0, 1.0);
+
+                // Get get eye space coordinates
+                glm::mat4 inverseProj = glm::inverse(projM);
+                glm::vec4 ray_eye = inverseProj * ray_clip;
+                ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0, 0.0);
+
+                // Get world coordinates
+                glm::mat4 inverseView = glm::inverse(viewM);
+                glm::vec4 ray_world = (inverseView * ray_eye);
+                glm::vec4 ray_dir(glm::normalize(ray_world));
+                glm::vec4 ray_origin = glm::vec4(cameraOrigin, 1.0f);
+
                 TriMesh* meshPtr = mesh.getTriMesh();
                 TriMesh::VertexIter v_it(meshPtr->vertices_sbegin());
-                TriMesh::VertexHandle _vh(*v_it);
-                TriMesh::Point p = meshPtr->point(_vh);
-                glm::vec3 rayOrgToPoint(p[0],p[1],p[2]);
-                rayOrgToPoint = rayOrgToPoint - glm::vec3(point);
-                rayOrgToPoint = glm::normalize(rayOrgToPoint);
-                dist = glm::length(glm::cross(glm::vec3(vect), rayOrgToPoint));
-                cout<<"length:"<<dist<<std::endl;
                 for(;v_it != meshPtr->vertices_end(); ++v_it)
                 {
-                    p = meshPtr->point(*v_it);
-                    glm::vec3 rayOrgToPoint(p[0],p[1],p[2]);
-                    rayOrgToPoint = rayOrgToPoint - glm::vec3(point);
-                    rayOrgToPoint = glm::normalize(rayOrgToPoint);
-                    tempDist = glm::length(glm::cross(glm::vec3(vect), rayOrgToPoint));
-                    if(tempDist<dist)
+                    TriMesh::Point p = meshPtr->point(*v_it);
+                    TriMesh::Normal n = meshPtr->normal(*v_it);
+                    glm::vec4 normal(n[0],n[1],n[2], 0.0f);
+                    glm::vec4 vertPoint(p[0],p[1],p[2], 1.0f);
+                    vertPoint = modelM * vertPoint;
+                    normal = modelM * normal;
+                    // make sure vertex is facing camera
+                    float angle = glm::dot(normal, ray_dir);
+                    if( angle < 0 )
                     {
-                        dist = tempDist;
-                        _vh = *v_it;
+                        if(intersect(ray_dir, ray_origin, vertPoint, tempDist))
+                        {
+                            if(tempDist < dist)  // If new t is smaller than min
+                            {
+                                dist = tempDist;
+                                selectedIdx = (*v_it).idx();
+                            }
+                    }
                     }
                 }
-                cout<<"closest vert at vert "<<_vh.idx()<<std::endl;
-                selectedIdx = _vh.idx();
             }
         }
     }
@@ -436,15 +478,22 @@ void DefoHeart::mouseClickCallbackImp(GLFWwindow* window, int button, int action
 
 void DefoHeart::scrollCallbackImp(GLFWwindow* window, double xoffset, double yoffset)
 {
+    static float const zoom_factor = 1.0f;
 	if (yoffset > 0)
 	{
-        glm::mat4 scaling = glm::scale(glm::mat4(1.0), glm::vec3(1.1));
-        modelM = scaling * modelM;
+//        glm::mat4 scaling = glm::scale(glm::mat4(1.0), glm::vec3(1.1));
+//        modelM = scaling * modelM;
+        glm::vec3 dir = glm::normalize(cameraOrigin);
+        cameraOrigin = cameraOrigin + (zoom_factor * dir);
+        viewM = glm::lookAt(cameraOrigin, glm::vec3(0,0,0), glm::vec3(0,1,0));
 	}
 	else
 	{
-		glm::mat4 scaling = glm::scale(glm::mat4(1.0), glm::vec3(0.9));
-        modelM = scaling * modelM;
+//		glm::mat4 scaling = glm::scale(glm::mat4(1.0), glm::vec3(0.9));
+//        modelM = scaling * modelM;
+        glm::vec3 dir = glm::normalize(cameraOrigin);
+        cameraOrigin = cameraOrigin + (-zoom_factor * dir);
+        viewM = glm::lookAt(cameraOrigin, glm::vec3(0,0,0), glm::vec3(0,1,0));
 	}
 }
 

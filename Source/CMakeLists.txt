@@ -62,11 +62,13 @@ list(APPEND SRCS
     main.cc
     DefoHeart.cc
     HeartMesh.cc
+    polyroots.cpp
 )
 
 list(APPEND HEADERS
     DefoHeart.hpp
     HeartMesh.hpp
+    polyroots.h
 )
 
 add_executable (${APP_NAME} ${SRCS} ${HEADERS} ${APP_ICON_LOCATION})
