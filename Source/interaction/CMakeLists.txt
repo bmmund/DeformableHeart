@@ -8,6 +8,7 @@ set(INTERACTION_LIB ${LIB_NAME} PARENT_SCOPE)
 # Libs
 #########################################################
 list(APPEND LIBRARIES
+    "${OPENMESH_LIBRARIES}"
     "${UTILITIES_LIB}"
 )
 
@@ -24,10 +25,12 @@ list(APPEND INCLUDES_DIRS
 #-------------------------------------------------------------------------------
 list(APPEND SRCS
     trackball.cc
+    rayselector.cc
 )
 
 list(APPEND HEADERS
     trackball.hpp
+    rayselector.hpp
 )
 
 add_library (${LIB_NAME} ${SRCS} ${HEADERS})

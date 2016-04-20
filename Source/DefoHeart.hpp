@@ -6,6 +6,7 @@
 #include "loop.hpp"
 #include <glm/glm.hpp>
 #include "trackball.hpp"
+#include "rayselector.hpp"
 
 class DefoHeart : public App
 {
@@ -17,6 +18,7 @@ private:
     HeartMesh mesh;
     Loop subDivider;
     Trackball trackball;
+    RaySelector rayselector;
     glm::mat4 modelM;
     glm::mat4 viewM;
     glm::mat4 projM;

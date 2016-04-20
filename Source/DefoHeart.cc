@@ -17,6 +17,7 @@ DefoHeart::DefoHeart()
         mesh(HEART_MESH_PATH),
         subDivider(),
         trackball(windowWidth, windowHeight),
+        rayselector(windowWidth, windowHeight, &projM, &viewM, &modelM, &cameraOrigin),
         selectedIdx(-1),
         useNormal(true),
         useLighting(true)
@@ -256,9 +257,7 @@ void DefoHeart::initializeGL()
     modelM = glm::mat4(1.0);
     cameraOrigin = glm::vec3(0.f, 2.f, 2.f);
     viewM = glm::lookAt(cameraOrigin, glm::vec3(0,0,0), glm::vec3(0,1,0));
-    projM = glm::perspective(45.0f, getWindowRatio(), 0.1f, 100.0f);
-
-    glViewport(0, 0, getWidth(), getHeight());
+    resize();
 
 }
 
@@ -267,6 +266,7 @@ void DefoHeart::resize()
     glViewport(0, 0, getWidth(), getHeight());
     projM = glm::perspective(45.0f, getWindowRatio(), 0.1f, 100.0f);
     trackball.setTrackball(getWidth(), getHeight());
+    rayselector.setWindow(getWidth(), getHeight());
 }
 
 void DefoHeart::keyCallbackImp(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -367,57 +367,7 @@ void DefoHeart::mouseClickCallbackImp(GLFWwindow* window, int button, int action
             }
             else
             {
-                float dist;
-                float tempDist;
-                dist = numeric_limits<float>::infinity();
-                glm::vec2 pixelCords(mouseX, mouseY);
-                // Get normalized device coordinates of ray
-                glm::vec3 ray_nds;
-                ray_nds = glm::vec3(
-                                    Utilities::normalized_device_cordinates(pixelCords,
-                                                                            getWidth(),
-                                                                            getHeight()),
-                                    1.0f);
-
-
-                // Get clip space coordinates of ray
-                glm::vec4 ray_clip(ray_nds.x, ray_nds.y, -1.0, 1.0);
-
-                // Get get eye space coordinates
-                glm::mat4 inverseProj = glm::inverse(projM);
-                glm::vec4 ray_eye = inverseProj * ray_clip;
-                ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0, 0.0);
-
-                // Get world coordinates
-                glm::mat4 inverseView = glm::inverse(viewM);
-                glm::vec4 ray_world = (inverseView * ray_eye);
-                glm::vec4 ray_dir(glm::normalize(ray_world));
-                glm::vec4 ray_origin = glm::vec4(cameraOrigin, 1.0f);
-
-                TriMesh* meshPtr = mesh.getTriMesh();
-                TriMesh::VertexIter v_it(meshPtr->vertices_sbegin());
-                for(;v_it != meshPtr->vertices_end(); ++v_it)
-                {
-                    TriMesh::Point p = meshPtr->point(*v_it);
-                    TriMesh::Normal n = meshPtr->normal(*v_it);
-                    glm::vec4 normal(n[0],n[1],n[2], 0.0f);
-                    glm::vec4 vertPoint(p[0],p[1],p[2], 1.0f);
-                    vertPoint = modelM * vertPoint;
-                    normal = modelM * normal;
-                    // make sure vertex is facing camera
-                    float angle = glm::dot(normal, ray_dir);
-                    if( angle < 0 )
-                    {
-                        if(Utilities::intersect(ray_dir, ray_origin, vertPoint, tempDist))
-                        {
-                            if(tempDist < dist)  // If new t is smaller than min
-                            {
-                                dist = tempDist;
-                                selectedIdx = (*v_it).idx();
-                            }
-                    }
-                    }
-                }
+                selectedIdx = rayselector.getVertexIndex(mesh.getTriMesh(), glm::vec2(mouseX, mouseY));
             }
         }
     }
