@@ -31,3 +31,15 @@ glm::vec2 Utilities::normalized_device_cordinates(const glm::vec2 &pixelCords, i
     normDeviceCords.y = 1.0f - (2.0f * pixelCords.y) / height;
     return normDeviceCords;
 }
+
+float Utilities::clamp(float value, float lowerBound, float upperBound)
+{
+    float temp;
+    if(lowerBound > upperBound)
+    {
+        temp = lowerBound;
+        lowerBound = upperBound;
+        upperBound = temp;
+    }
+    return value < lowerBound ? lowerBound : (value > upperBound ? upperBound : value);
+}
