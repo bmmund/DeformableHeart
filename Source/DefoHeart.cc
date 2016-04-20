@@ -203,33 +203,15 @@ void DefoHeart::setHeartMaterial(void)
 
 void DefoHeart::setDefaultLight(void)
 {
-    GLfloat pos1[] = { 0.1,  0.1, -0.02, 0.0};
-    GLfloat pos2[] = {-0.1,  0.1, -0.02, 0.0};
-    GLfloat pos3[] = { 0.0,  0.0,  0.1,  0.0};
-    GLfloat pos4[] = { 0.0,  -0.5,  0.5,  0.0};
-    GLfloat col1[] = { 0.7,  0.7,  0.8,  1.0};
-    GLfloat col2[] = { 0.8,  0.7,  0.7,  1.0};
-    GLfloat col3[] = { 1.0,  1.0,  1.0,  1.0};
+    GLfloat pos1[] = { 0,  1.0,  1.4,  0.0};
+    GLfloat col1[] = { 1,1,1,  1.0};
+    GLfloat col2[] = { 0, 0, 0,  1.0};
 
     glEnable(GL_LIGHT0);
     glLightfv(GL_LIGHT0,GL_POSITION, pos1);
     glLightfv(GL_LIGHT0,GL_DIFFUSE,  col1);
-    glLightfv(GL_LIGHT0,GL_SPECULAR, col1);
+    glLightfv(GL_LIGHT0,GL_SPECULAR, col2);
 
-    glEnable(GL_LIGHT1);
-    glLightfv(GL_LIGHT1,GL_POSITION, pos2);
-    glLightfv(GL_LIGHT1,GL_DIFFUSE,  col2);
-    glLightfv(GL_LIGHT1,GL_SPECULAR, col2);
-
-    glEnable(GL_LIGHT2);
-    glLightfv(GL_LIGHT2,GL_POSITION, pos3);
-    glLightfv(GL_LIGHT2,GL_DIFFUSE,  col3);
-    glLightfv(GL_LIGHT2,GL_SPECULAR, col3);
-
-    glEnable(GL_LIGHT3);
-    glLightfv(GL_LIGHT3,GL_POSITION, pos4);
-    glLightfv(GL_LIGHT3,GL_DIFFUSE,  col3);
-    glLightfv(GL_LIGHT3,GL_SPECULAR, col3);
 }
 
 void DefoHeart::initializeGL()
