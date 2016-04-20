@@ -51,7 +51,7 @@ glm::mat4 Trackball::getRotation(glm::vec2 mousePos)
         // retrieve axis of rotation which is the cross product of
         // the old position vector and new position vector
         glm::vec3 axis = glm::cross(prevBallPoint, newBallPoint);
-        if (glm::dot(axis, axis) < 0) {
+        if (glm::dot(axis, axis) <= 0) {
             axis = glm::vec3(1, 0, 0);
         } else {
             axis = glm::normalize(axis);
