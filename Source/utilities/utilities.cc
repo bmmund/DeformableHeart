@@ -1,6 +1,6 @@
 #include "utilities.hpp"
 #include "polyroots.hpp"
-
+#include <algorithm>
 bool Utilities::intersect(glm::vec4 &ray_dir, glm::vec4 &ray_origin, glm::vec4 &center, float &t_out)
 {
     static float const radius2 = 0.0005f;

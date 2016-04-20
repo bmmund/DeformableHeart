@@ -88,7 +88,7 @@ static double PolishRoot(
  * in Linux.  This is probably not the best way to implement the cube
  * root function.
  */
-#ifdef _WIN32
+#if 0
 static double cbrt( double t )
 {
 	return pow( t, 1.0/3.0 );

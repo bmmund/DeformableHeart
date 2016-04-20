@@ -11,6 +11,7 @@ if(APPLE)
 endif()
 if(WIN32)
     set(APP_ICON_NAME "res.rc")
+    add_definitions(-D_USE_MATH_DEFINES)
 endif()
 
 set(APP_ICON_LOCATION ${RESOURCE_DIR}/${APP_ICON_NAME})
