@@ -38,6 +38,7 @@ private:
     void drawMeshPoints();
     void drawMeshPoint(int index);
     void drawModelGnomenPoints();
+    void resetModelView();
     void resize();
     void keyCallbackImp(GLFWwindow* window, int key, int scancode, int action, int mods);
     void mousePositionCallbackImp(GLFWwindow* window, double xpos, double ypos);

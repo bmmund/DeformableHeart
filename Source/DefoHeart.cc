@@ -255,11 +255,18 @@ void DefoHeart::initializeGL()
     glFogf(GL_FOG_START,    5.0f);
     glFogf(GL_FOG_END,     25.0f);
 
-    modelM = glm::mat4(1.0);
-    cameraOrigin = glm::vec3(0.f, 2.f, 2.f);
-    viewM = glm::lookAt(cameraOrigin, glm::vec3(0,0,0), glm::vec3(0,1,0));
+    resetModelView();
     resize();
 
+}
+
+void DefoHeart::resetModelView()
+{
+    modelM = glm::mat4(1.0);
+    modelM = glm::rotate(modelM, glm::radians(180.0f), glm::vec3(0,1,0));
+    modelM = glm::translate(modelM, glm::vec3(0,-0.5,0));
+    cameraOrigin = glm::vec3(0.f, 1.0f, 1.4f);
+    viewM = glm::lookAt(cameraOrigin, glm::vec3(0,0,0), glm::vec3(0,1,0));
 }
 
 void DefoHeart::resize()
@@ -280,7 +287,7 @@ void DefoHeart::keyCallbackImp(GLFWwindow* window, int key, int scancode, int ac
     }
     else if(key == GLFW_KEY_R && action == GLFW_PRESS)
     {
-        modelM = glm::rotate(modelM, glm::radians(10.0f), glm::vec3(0.f, 1.f, 0.f));
+        resetModelView();
     }
     else if(key == GLFW_KEY_M && action == GLFW_PRESS)
     {
@@ -298,6 +305,14 @@ void DefoHeart::keyCallbackImp(GLFWwindow* window, int key, int scancode, int ac
     else if(key == GLFW_KEY_L && action == GLFW_PRESS)
     {
         useLighting = !useLighting;
+    }
+    else if(key == GLFW_KEY_RIGHT && action == GLFW_PRESS)
+    {
+        modelM = glm::rotate(modelM, glm::radians(45.0f), glm::vec3(0.f, 1.f, 0.f));
+    }
+    else if(key == GLFW_KEY_LEFT && action == GLFW_PRESS)
+    {
+        modelM = glm::rotate(modelM, glm::radians(-45.0f), glm::vec3(0.f, 1.f, 0.f));
     }
     else if(((key == GLFW_KEY_UP) || (key == GLFW_KEY_DOWN)) && action == GLFW_PRESS)
     {
@@ -364,17 +379,17 @@ void DefoHeart::mouseClickCallbackImp(GLFWwindow* window, int button, int action
 
 void DefoHeart::scrollCallbackImp(GLFWwindow* window, double xoffset, double yoffset)
 {
-    static float const zoom_factor = 1.0f;
+    static float const zoom_factor = 0.5f;
 	if (yoffset > 0)
 	{
         glm::vec3 dir = glm::normalize(cameraOrigin);
-        cameraOrigin = cameraOrigin + (zoom_factor * dir);
+        cameraOrigin = cameraOrigin + (-zoom_factor * dir);
         viewM = glm::lookAt(cameraOrigin, glm::vec3(0,0,0), glm::vec3(0,1,0));
 	}
 	else
 	{
         glm::vec3 dir = glm::normalize(cameraOrigin);
-        cameraOrigin = cameraOrigin + (-zoom_factor * dir);
+        cameraOrigin = cameraOrigin + (zoom_factor * dir);
         viewM = glm::lookAt(cameraOrigin, glm::vec3(0,0,0), glm::vec3(0,1,0));
 	}
 }
