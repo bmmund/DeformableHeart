@@ -32,7 +32,7 @@ void Trackball::setTrackball(int width, int height, double radius)
 
 void Trackball::update(glm::vec2 mousePos)
 {
-    prevBallPoint = map_screen_to_trackball(mousePos);
+    prevBallPoint = mapToTrackball(mousePos);
     valid = true;
 }
 
@@ -46,7 +46,7 @@ glm::mat4 Trackball::getRotation(glm::vec2 mousePos)
 {
     glm::mat4 rotationM(1.0f);
     glm::vec3  newBallPoint;
-    newBallPoint = map_screen_to_trackball(mousePos);
+    newBallPoint = mapToTrackball(mousePos);
     if (isValid()) {
         // retrieve axis of rotation which is the cross product of
         // the old position vector and new position vector
@@ -68,7 +68,7 @@ glm::mat4 Trackball::getRotation(glm::vec2 mousePos)
     return rotationM;
 }
 
-glm::vec3 Trackball::map_screen_to_trackball(const glm::vec2& screenPoint)
+glm::vec3 Trackball::mapToTrackball(const glm::vec2& screenPoint)
 {
     glm::vec3 trackballCords;
     // get coordinates in NDC

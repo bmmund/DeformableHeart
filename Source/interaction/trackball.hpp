@@ -22,6 +22,6 @@ private:
     double _radius2;
     bool valid;
     glm::vec3 prevBallPoint;
-    glm::vec3 map_screen_to_trackball(const glm::vec2& screenPoint);
+    glm::vec3 mapToTrackball(const glm::vec2& screenPoint);
 };
 #endif
