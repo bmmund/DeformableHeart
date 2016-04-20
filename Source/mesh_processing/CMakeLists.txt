@@ -24,10 +24,12 @@ list(APPEND INCLUDES_DIRS
 #-------------------------------------------------------------------------------
 list(APPEND SRCS
     loop.cc
+    deformation.cc
 )
 
 list(APPEND HEADERS
     loop.hpp
+    deformation.hpp
 )
 
 add_library (${LIB_NAME} ${SRCS} ${HEADERS})

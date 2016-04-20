@@ -5,6 +5,7 @@
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
 #include "utilities.hpp"
+#include "deformation.hpp"
 
 using namespace std;
 
@@ -236,7 +237,7 @@ void DefoHeart::initializeGL()
 {
     // OpenGL state
     glEnable(GL_DEPTH_TEST);
-    glShadeModel(GL_FLAT);
+    glShadeModel(GL_SMOOTH);
     glEnable(GL_LIGHTING);
     // Material
     setDefaultMaterial();
@@ -302,31 +303,14 @@ void DefoHeart::keyCallbackImp(GLFWwindow* window, int key, int scancode, int ac
     {
         if(selectedIdx != -1)
         {
-            TriMesh::VertexHandle vh(mesh.getTriMesh()->vertex_handle(selectedIdx));
-            TriMesh::Normal n = mesh.getTriMesh()->normal(vh);
-            TriMesh::Point p = mesh.getTriMesh()->point(vh);
-            glm::vec3 point(p[0],p[1],p[2]);
-            glm::vec3 normal(n[0],n[1],n[2]);
-            glm::vec3 displace(0,0,0);
-            displace = point - displace;
-            if(useNormal)
-                displace = glm::normalize(normal);
-            else
-                displace = glm::normalize(displace);
-
             if(key == GLFW_KEY_DOWN)
             {
-                displace *= -1;
+                Deformation::pushVertsIn(mesh.getTriMesh(), selectedIdx, 0.01f);
             }
-//            displace = glm::normalize(displace);
-            cout<<"displace:"<<displace.x<<" "<< displace.y<< " "<< displace.z<<std::endl;
-            cout<<"normal:"<<normal.x<<" "<< normal.y<< " "<< normal.z<<std::endl;
-
-            point = point + (0.10f * displace);
-//            p = p + (0.05 * n);
-            for(int i = 0 ; i<3; i++)
-                p[i] = point[i];
-            mesh.getTriMesh()->set_point(vh, p);
+            else
+            {
+                Deformation::pushVertsOut(mesh.getTriMesh(), selectedIdx, 0.01f);
+            }
         }
     }
 }
