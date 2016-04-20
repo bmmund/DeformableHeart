@@ -163,7 +163,7 @@ void App::run()
 void App::windowSizeCallbackImp(GLFWwindow* window, int newWidth, int newHeight)
 {
     glfwGetFramebufferSize(window, &width, &height); // update sizes with framebuffer
-    glViewport(0, 0, width, height);
+    resize();
 }
 
 void App::keyCallbackImp(GLFWwindow* window, int key, int scancode, int action, int mods)

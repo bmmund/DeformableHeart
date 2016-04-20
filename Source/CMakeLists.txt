@@ -23,8 +23,9 @@ add_definitions(-DHEART_MESH_PATH="${HEART_MESH_LOCATION}")
 #########################################################
 # Build Render-App Engine
 #########################################################
+add_subdirectory(utilities)
+add_subdirectory(interaction)
 add_subdirectory(render_core)
-add_subdirectory(trackball)
 add_subdirectory(mesh_processing)
 
 #########################################################
@@ -35,14 +36,14 @@ list(APPEND LIBRARIES
     "${OPENGL_LIBRARIES}"
     "${GLEW_LIBRARIES}"
     "${RENDER_CORE_LIB}"
-    "${TRACKBALL_LIB}"
+    "${INTERACTION_LIB}"
     "${MESH_PROCESSING_LIB}"
+    "${UTILITIES_LIB}"
     "${OPENMESH_LIBRARIES}"
-    #"${Qt5Widgets_LIBRARIES}"
 )
 
 #########################################################
-# Headerss
+# Headers
 #########################################################
 list(APPEND INCLUDES_DIRS
     "${GLFW_INCLUDE_DIR}"
@@ -62,13 +63,11 @@ list(APPEND SRCS
     main.cc
     DefoHeart.cc
     HeartMesh.cc
-    polyroots.cpp
 )
 
 list(APPEND HEADERS
     DefoHeart.hpp
     HeartMesh.hpp
-    polyroots.h
 )
 
 add_executable (${APP_NAME} ${SRCS} ${HEADERS} ${APP_ICON_LOCATION})

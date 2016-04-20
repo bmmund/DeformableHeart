@@ -1,26 +1,25 @@
 #include "DefoHeart.hpp"
-#include "trackball.hpp"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <string>
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
-#include "polyroots.h"
+#include "utilities.hpp"
 
 using namespace std;
 
 int const windowWidth = 640;
 int const windowHeight = 480;
 std::string const application_name = "DefoHeart";
-const double TRACKBALL_RADIUS = 4;
 
 DefoHeart::DefoHeart()
-    : App(windowWidth, windowHeight, application_name),
-      mesh(HEART_MESH_PATH),
-      subDivider(),
-    selectedIdx(-1),
-    useNormal(true),
-    useLighting(true)
+    :   App(windowWidth, windowHeight, application_name),
+        mesh(HEART_MESH_PATH),
+        subDivider(),
+        trackball(windowWidth, windowHeight),
+        selectedIdx(-1),
+        useNormal(true),
+        useLighting(true)
 {
     initializeGL();
 }
@@ -45,24 +44,12 @@ void DefoHeart::loop()
 
 void DefoHeart::updateGeometries()
 {
-    float ratio;
-    int width, height;
-    width = getWidth();
-    height = getHeight();
-    ratio = width / (float) height;
-
-    glViewport(0, 0, width, height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-//    glOrtho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
-//    projM = glm::ortho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
-    projM = glm::perspective(45.0f, ratio, 0.1f, 100.0f);
-//    glOrtho(-1.f, 1.f, -1.f, 1.f, 1.f, -1.f);
-//    glMultMatrixf(&(projM[0][0]));
     glLoadMatrixf(&(projM[0][0]));
+
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-
     glm::mat4 modelViewM = viewM * modelM;
     glLoadMatrixf(&(modelViewM[0][0]));
 
@@ -83,10 +70,10 @@ void DefoHeart::updateGeometries()
     glColor3f(1.0, 1.0, 1.0);
     drawMeshPoints();
 
-    //    glColor3f(0.f, 1.f, 0.f);
-    //    drawMeshNormals();
+//    glColor3f(0.f, 1.f, 0.f);
+//    drawMeshNormals();
 
-    drawModelGnomenPoints();
+//    drawModelGnomenPoints();
 
     if(useLighting)
         glEnable(GL_LIGHTING);
@@ -186,7 +173,6 @@ void DefoHeart::drawModelGnomenPoints()
     glVertex3f(0, 0, 1.f);
     glEnd();
 }
-//----------------------------------------------------------------------------
 
 void DefoHeart::setDefaultMaterial(void)
 {
@@ -201,7 +187,6 @@ void DefoHeart::setDefaultMaterial(void)
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shine);
 }
 
-
 void DefoHeart::setHeartMaterial(void)
 {
     GLfloat mat_a[] = {0.1, 0.0, 0., 1.0};
@@ -214,9 +199,6 @@ void DefoHeart::setHeartMaterial(void)
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,  mat_s);
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shine);
 }
-
-
-//----------------------------------------------------------------------------
 
 void DefoHeart::setDefaultLight(void)
 {
@@ -274,6 +256,17 @@ void DefoHeart::initializeGL()
     modelM = glm::mat4(1.0);
     cameraOrigin = glm::vec3(0.f, 2.f, 2.f);
     viewM = glm::lookAt(cameraOrigin, glm::vec3(0,0,0), glm::vec3(0,1,0));
+    projM = glm::perspective(45.0f, getWindowRatio(), 0.1f, 100.0f);
+
+    glViewport(0, 0, getWidth(), getHeight());
+
+}
+
+void DefoHeart::resize()
+{
+    glViewport(0, 0, getWidth(), getHeight());
+    projM = glm::perspective(45.0f, getWindowRatio(), 0.1f, 100.0f);
+    trackball.setTrackball(getWidth(), getHeight());
 }
 
 void DefoHeart::keyCallbackImp(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -340,71 +333,24 @@ void DefoHeart::keyCallbackImp(GLFWwindow* window, int key, int scancode, int ac
 
 void DefoHeart::mousePositionCallbackImp(GLFWwindow* window, double xpos, double ypos)
 {
-    glm::vec2 newPoint2D(xpos, ypos);
-    OpenMesh::Vec3f  newPoint3D;
-    bool   newPoint_hitSphere = map_to_sphere( newPoint2D, newPoint3D );
+    glm::vec2 newMousePos(xpos, ypos);
     int mouseState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
     int shiftKey = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT);
     // rotate
     if ( mouseState && shiftKey)
     {
-        if (last_point_ok_) {
-            if ((newPoint_hitSphere = map_to_sphere(newPoint2D, newPoint3D))) {
-                OpenMesh::Vec3f axis = last_point_3D_ % newPoint3D;
-                if (axis.sqrnorm() < 1e-7) {
-                    axis = OpenMesh::Vec3f(1, 0, 0);
-                } else {
-                    axis.normalize();
-                }
-                // find the amount of rotation
-                OpenMesh::Vec3f d = last_point_3D_ - newPoint3D;
-                float t = 0.5 * d.norm() / TRACKBALL_RADIUS;
-                if (t < -1.0)
-                    t = -1.0;
-                else if (t > 1.0)
-                    t = 1.0;
-                float phi = 2.0 * asin(t);
-                float angle = phi * 180.0 / M_PI;
-                glm::vec3 axisRot(axis[0], axis[1], axis[2]);
-                glm::mat4 rotationM;
-                rotationM = glm::rotate(rotationM, angle, axisRot);
-                modelM = rotationM * modelM;
-            }
+        if (trackball.isValid()) {
+            glm::mat4 rotationM = trackball.getRotation(newMousePos);
+            modelM = rotationM * modelM;
         }
     }
-    // remember this point
-    last_point_2D_ = newPoint2D;
-    last_point_3D_ = newPoint3D;
-    last_point_ok_ = newPoint_hitSphere;
 }
-bool DefoHeart::intersect(glm::vec4 &ray_dir, glm::vec4 &ray_origin, glm::vec4 &center, float &t_out)
-{
-    static float const radius2 = 0.0005f;
-    double t[] = {0,0}; // solution(s) to sphere intersection
-    glm::vec4 L = ray_origin - center;
-    double a = glm::dot(ray_dir, ray_dir);
-    double b = 2 * glm::dot(ray_dir, L);
-    double c = glm::dot(L,L) - (radius2);
-    int roots = (int)quadraticRoots(a, b, c, t);
-    if (!roots) return false;
 
-    // order roots such that t0 is less than t1
-    if (t[0] > t[1]) std::swap(t[0], t[1]);
 
-    // make sure that the roots are not negative
-    if (t[0] < 0) {
-        t[0] = t[1]; // if t0 is negative, let's use t1 instead
-        if (t[0] < 0) return false; // both t0 and t1 are negative
-    }
-    t_out = t[0];
-    return true;
-}
 
 void DefoHeart::mouseClickCallbackImp(GLFWwindow* window, int button, int action, int mods)
 {
         double mouseX,mouseY;
-        int wwidth, wheight;
-        glfwGetWindowSize(window, &wwidth, &wheight);
         glfwGetCursorPos(window, &mouseX, &mouseY);
     if(action == GLFW_PRESS)
     {
@@ -417,21 +363,22 @@ void DefoHeart::mouseClickCallbackImp(GLFWwindow* window, int button, int action
         {
             if(shiftKey)
             {
-                last_point_2D_.x = mouseX;
-                last_point_2D_.y = mouseY;
-                last_point_ok_ = map_to_sphere( last_point_2D_, last_point_3D_ );
+                trackball.update(glm::vec2(mouseX, mouseY));
             }
             else
             {
                 float dist;
                 float tempDist;
                 dist = numeric_limits<float>::infinity();
-
+                glm::vec2 pixelCords(mouseX, mouseY);
                 // Get normalized device coordinates of ray
                 glm::vec3 ray_nds;
-                ray_nds.x = (2.0f * mouseX) / getWidth() - 1.0f;
-                ray_nds.y = 1.0f - (2.0f * mouseY) / getHeight();
-                ray_nds.z = 1.0f;
+                ray_nds = glm::vec3(
+                                    Utilities::normalized_device_cordinates(pixelCords,
+                                                                            getWidth(),
+                                                                            getHeight()),
+                                    1.0f);
+
 
                 // Get clip space coordinates of ray
                 glm::vec4 ray_clip(ray_nds.x, ray_nds.y, -1.0, 1.0);
@@ -461,7 +408,7 @@ void DefoHeart::mouseClickCallbackImp(GLFWwindow* window, int button, int action
                     float angle = glm::dot(normal, ray_dir);
                     if( angle < 0 )
                     {
-                        if(intersect(ray_dir, ray_origin, vertPoint, tempDist))
+                        if(Utilities::intersect(ray_dir, ray_origin, vertPoint, tempDist))
                         {
                             if(tempDist < dist)  // If new t is smaller than min
                             {
@@ -474,6 +421,11 @@ void DefoHeart::mouseClickCallbackImp(GLFWwindow* window, int button, int action
             }
         }
     }
+    else if(action == GLFW_RELEASE)
+    {
+        if(button == GLFW_MOUSE_BUTTON_1)
+            trackball.inValidate();
+    }
 }
 
 void DefoHeart::scrollCallbackImp(GLFWwindow* window, double xoffset, double yoffset)
@@ -481,40 +433,14 @@ void DefoHeart::scrollCallbackImp(GLFWwindow* window, double xoffset, double yof
     static float const zoom_factor = 1.0f;
 	if (yoffset > 0)
 	{
-//        glm::mat4 scaling = glm::scale(glm::mat4(1.0), glm::vec3(1.1));
-//        modelM = scaling * modelM;
         glm::vec3 dir = glm::normalize(cameraOrigin);
         cameraOrigin = cameraOrigin + (zoom_factor * dir);
         viewM = glm::lookAt(cameraOrigin, glm::vec3(0,0,0), glm::vec3(0,1,0));
 	}
 	else
 	{
-//		glm::mat4 scaling = glm::scale(glm::mat4(1.0), glm::vec3(0.9));
-//        modelM = scaling * modelM;
         glm::vec3 dir = glm::normalize(cameraOrigin);
         cameraOrigin = cameraOrigin + (-zoom_factor * dir);
         viewM = glm::lookAt(cameraOrigin, glm::vec3(0,0,0), glm::vec3(0,1,0));
 	}
-}
-
-bool DefoHeart::map_to_sphere( const glm::vec2& _v2D, OpenMesh::Vec3f& _v3D )
-{
-    // This is actually doing the Sphere/Hyperbolic sheet hybrid thing,
-    // based on Ken Shoemake's ArcBall in Graphics Gems IV, 1993.
-    double x =  (2.0*_v2D.x - getWidth())/getWidth();
-    double y = -(2.0*_v2D.y - getHeight())/getHeight();
-    double xval = x;
-    double yval = y;
-    double x2y2 = xval*xval + yval*yval;
-
-    const double rsqr = TRACKBALL_RADIUS*TRACKBALL_RADIUS;
-    _v3D[0] = xval;
-    _v3D[1] = yval;
-    if (x2y2 < 0.5*rsqr) {
-        _v3D[2] = sqrt(rsqr - x2y2);
-    } else {
-        _v3D[2] = 0.5*rsqr/sqrt(x2y2);
-    }
-
-    return true;
 }

@@ -63,7 +63,7 @@ protected:
     virtual void mousePositionCallbackImp(GLFWwindow* window, double xpos, double ypos);
     virtual void mouseClickCallbackImp(GLFWwindow* window, int button, int action, int mods);
 	virtual void scrollCallbackImp(GLFWwindow* window, double xoffset, double yoffset);
-
+    virtual void resize() {;}
 
 };
 
