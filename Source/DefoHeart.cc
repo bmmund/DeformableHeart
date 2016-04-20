@@ -21,7 +21,8 @@ DefoHeart::DefoHeart()
         rayselector(windowWidth, windowHeight, &projM, &viewM, &modelM, &cameraOrigin),
         selectedIdx(-1),
         useNormal(true),
-        useLighting(true)
+        useLighting(true),
+        drawWireFrame(true)
 {
     initializeGL();
 }
@@ -64,18 +65,16 @@ void DefoHeart::updateGeometries()
 
     glDisable(GL_LIGHTING);
     // draw the wireframe
-    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-    glColor3f(0.0f, 0.f, 0.f);
-    drawMesh();
+    if(drawWireFrame)
+    {
+        glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+        glColor3f(0.0f, 0.f, 0.f);
+        drawMesh();
+    }
 
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     glColor3f(1.0, 1.0, 1.0);
     drawMeshPoints();
-
-//    glColor3f(0.f, 1.f, 0.f);
-//    drawMeshNormals();
-
-//    drawModelGnomenPoints();
 
     if(useLighting)
         glEnable(GL_LIGHTING);
@@ -284,6 +283,10 @@ void DefoHeart::keyCallbackImp(GLFWwindow* window, int key, int scancode, int ac
     else if(key == GLFW_KEY_S && action == GLFW_PRESS)
     {
         subDivider.subdivide(mesh.getTriMesh());
+    }
+    else if(key == GLFW_KEY_W && action == GLFW_PRESS)
+    {
+        drawWireFrame = !drawWireFrame;
     }
     else if(key == GLFW_KEY_R && action == GLFW_PRESS)
     {

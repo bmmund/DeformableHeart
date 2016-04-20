@@ -27,6 +27,7 @@ private:
 
     bool useNormal;
     bool useLighting;
+    bool drawWireFrame;
 
     void setDefaultMaterial(void);
     void setHeartMaterial();
