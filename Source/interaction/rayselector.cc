@@ -20,7 +20,8 @@ RaySelector::RaySelector(
 
 void RaySelector::setWindow(int width, int height)
 {
-
+    screenWidth = width;
+    screenHeight = height;
 }
 
 int RaySelector::getVertexIndex(TriMesh *mesh, glm::vec2 pixelCords)
@@ -67,7 +68,8 @@ int RaySelector::getVertexIndex(TriMesh *mesh, glm::vec2 pixelCords)
         {
             if(Utilities::intersect(ray_dir, ray_origin, vertPoint, tempDist))
             {
-                if(tempDist < dist)  // If new t is smaller than min
+                // If the new vertex is closer to the ray, remember it
+                if(tempDist < dist)
                 {
                     dist = tempDist;
                     selectedIdx = (*v_it).idx();
