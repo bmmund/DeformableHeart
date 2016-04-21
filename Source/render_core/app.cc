@@ -101,10 +101,6 @@ App::App( int _width, int _height, std::string _title ):
     glfwSetCursorPosCallback(window, App::mousePositionCallback);
     glfwSetMouseButtonCallback(window, App::mouseClickCallback);
 	glfwSetScrollCallback(window, App::scrollCallback);
-    // opengl configuration
-//    glEnable (GL_DEPTH_TEST); // enable depth-testing
-//    glDepthFunc (GL_LESS); // depth-testing interprets a smaller value as "closer"
-
 }
 
 App::~App()
