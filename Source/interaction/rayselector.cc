@@ -1,7 +1,6 @@
 #include "rayselector.hpp"
 #include <limits>
 #include "utilities.hpp"
-#include <iostream>
 
 RaySelector::RaySelector(
                          int width,
@@ -42,7 +41,6 @@ int RaySelector::getVertexIndex(TriMesh *mesh, glm::vec2 pixelCords)
 
     // Get clip space coordinates of ray
     glm::vec4 ray_clip(ray_nds.x, ray_nds.y, -1.0, 1.0);
-    printf("mouse: %f,%f",pixelCords.x, pixelCords.y);
     // Get get eye space coordinates
     glm::mat4 inverseProj = glm::inverse(*projM);
     glm::vec4 ray_eye = inverseProj * ray_clip;
