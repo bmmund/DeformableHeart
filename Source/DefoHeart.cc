@@ -4,7 +4,6 @@
 #include <string>
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
-#include "utilities.hpp"
 #include "deformation.hpp"
 
 using namespace std;
@@ -252,7 +251,7 @@ void DefoHeart::resetModelView()
 
 void DefoHeart::resize()
 {
-    glViewport(0, 0, getWidth(), getHeight());
+    glViewport(0, 0, getPixelWidth(), getPixelHeight());
     projM = glm::perspective(45.0f, getWindowRatio(), 0.1f, 100.0f);
     trackball.setTrackball(getWidth(), getHeight());
     rayselector.setWindow(getWidth(), getHeight());

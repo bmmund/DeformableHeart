@@ -83,7 +83,7 @@ App::App( int _width, int _height, std::string _title ):
         glfwTerminate();
         throw std::runtime_error("GLFW init failed.");
     }
-    glfwGetFramebufferSize(window, &width, &height);    // update width/height
+    glfwGetFramebufferSize(window, &pixelsX, &pixelsY);    // update width/height
     glfwMakeContextCurrent(window);
 
     glewExperimental = GL_TRUE;
@@ -162,7 +162,9 @@ void App::run()
 
 void App::windowSizeCallbackImp(GLFWwindow* window, int newWidth, int newHeight)
 {
-    glfwGetFramebufferSize(window, &width, &height); // update sizes with framebuffer
+    glfwGetFramebufferSize(window, &pixelsX, &pixelsY); // update sizes with framebuffer
+    width = newWidth;
+    height = newHeight;
     resize();
 }
 
@@ -196,6 +198,16 @@ int App::getWidth()
 int App::getHeight()
 {
     return height;
+}
+
+int App::getPixelWidth()
+{
+    return pixelsX;
+}
+
+int App::getPixelHeight()
+{
+    return pixelsY;
 }
 
 float App::getWindowRatio()

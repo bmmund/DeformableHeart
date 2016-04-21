@@ -31,6 +31,8 @@ public:
     // Application informations
     int getWidth();
     int getHeight();
+    int getPixelWidth();
+    int getPixelHeight();
     float getWindowRatio();
     bool windowDimensionChange();
     static void windowSizeCallback(GLFWwindow* window, int width, int height);
@@ -50,6 +52,8 @@ private:
 
     int width;
     int height;
+    int pixelsX;
+    int pixelsY;
 
 protected:
 
