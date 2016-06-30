@@ -13,19 +13,32 @@ set(EXECUTABLE_OUTPUT_PATH
     CACHE PATH
     "Directory where executables will be stored"
 )
+
+# Set the directory where dependancies are stored
+set(DEPENDANCY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Dependancies")
+
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
 # Locate Dependancies
 #-------------------------------------------------------------------------------
-
+option(USE_LOCAL_DEPENDANCIES "Use locally installed libraries when possible" OFF)
 #########################################################
 # FIND GLFW
 #########################################################
-# GLFW_FOUND
-# GLFW_INCLUDE_DIR
-# GLFW_LIBRARIES
-find_package(GLFW REQUIRED)
+if(USE_LOCAL_DEPENDANCIES)
+    # GLFW_FOUND
+    # GLFW_INCLUDE_DIR
+    # GLFW_LIBRARIES
+    find_package(GLFW REQUIRED)
+else()
+    # GLFW_LIBRARIES
+    set(GLFW_BUILD_EXAMPLES OFF CACHE STRING "" FORCE)
+    set(GLFW_BUILD_TESTS    OFF CACHE STRING "" FORCE)
+    set(GLFW_INSTALL        OFF CACHE STRING "" FORCE)
+    add_subdirectory(${DEPENDANCY_DIR}/glfw)
+    list(APPEND GLFW_LIBRARIES glfw)
+endif()
 
 #########################################################
 # FIND OPENGL
@@ -75,14 +88,6 @@ if (NOT OPENGL_FOUND)
     list(APPEND MISSING OpenGL)
 endif()
 
-if (NOT GLEW_FOUND)
-    list(APPEND MISSING glew)
-endif()
-
-if (NOT GLFW_FOUND)
-    list(APPEND MISSING glfw)
-endif()
-
 #if (NOT Qt5Widgets_FOUND)
 #    list(APPEND MISSING Qt5Widgets)
 #endif()
@@ -90,6 +95,17 @@ endif()
 if (NOT OPENMESH_FOUND)
     list(APPEND MISSING OpenMesh)
 endif()
+
+if(USE_LOCAL_DEPENDANCIES)
+    if (NOT GLEW_FOUND)
+        list(APPEND MISSING glew)
+    endif()
+
+    if (NOT GLFW_FOUND)
+        list(APPEND MISSING glfw)
+    endif()
+endif()
+
 
 if (NOT (MISSING STREQUAL ""))
     message(WARNING
