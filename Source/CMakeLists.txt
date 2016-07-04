@@ -1,4 +1,4 @@
-option(USE_OPENGL_LEGACY ON)
+option(USE_OPENGL_LEGACY "Use fixed-pipeline opengl" ON)
 if(USE_OPENGL_LEGACY)
     add_definitions(-DUSE_OPENGL_LEGACY)
 endif()

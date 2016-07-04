@@ -55,6 +55,10 @@ find_package(OpenGL REQUIRED)
 #########################################################
 # GLM_INCLUDE_DIRS  - where to find glm/glm.hpp
 # GLM_FOUND         - if the library was successfully located
+if(NOT USE_LOCAL_DEPENDANCIES)
+    set(GLM_ROOT_DIR "${DEPENDANCY_DIR}/glm")
+    set(GLM_FOUND TRUE)
+endif()
 find_package(GLM REQUIRED)
 
 #########################################################
@@ -72,8 +76,20 @@ find_package(GLM REQUIRED)
 # OPENMESH_INCLUDE_DIRS    - the OPENMESH include directories
 # OPENMESH_LIBRARIES       - Link these to use OPENMESH
 # OPENMESH_LIBRARY_DIR     - directory where the libraries are included
-find_package(OpenMesh REQUIRED)
+if(USE_LOCAL_DEPENDANCIES)
+    find_package(OpenMesh REQUIRED)
+else()
+    set(BUILD_APPS OFF CACHE BOOL "" FORCE)
+    set(OPENMESH_BUILD_PYTHON_BINDINGS OFF CACHE BOOL "" FORCE)
+    set(OPENMESH_BUILD_PYTHON_UNIT_TESTS OFF CACHE BOOL "" FORCE)
+    set(OPENMESH_BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
+    set(OPENMESH_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+    add_subdirectory(${DEPENDANCY_DIR}/OpenMesh)
+endif()
 
+#########################################################
+# Notify of missing dependancies
+#########################################################
 set(MISSING "")
 
 if (NOT OPENGL_FOUND)
@@ -83,6 +99,10 @@ endif()
 #if (NOT Qt5Widgets_FOUND)
 #    list(APPEND MISSING Qt5Widgets)
 #endif()
+
+if (NOT GLM_FOUND)
+    list(APPEND MISSING glm)
+endif()
 
 if (NOT OPENMESH_FOUND)
     list(APPEND MISSING OpenMesh)
