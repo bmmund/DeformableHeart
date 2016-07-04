@@ -1,6 +1,18 @@
 # DeformableHeart
 CPSC 589 project for deformable heart models.
 
+## Cloning
+This project makes use of git submodules for maintaining dependencies. Please
+clone using the recursive option to retrieve submodules.
+```
+git clone git@github.com:bmmund/DeformableHeart.git --recursive
+```
+
+Otherwise, use the submodule update function. Generally, if you have issues
+with one of the dependencies try doing the following.
+```
+git submodule update --init --recursive
+```
 ## Demo
 Running Excetuable:
     double click "demo.exe" in the Bin folder
