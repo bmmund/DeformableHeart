@@ -10,7 +10,6 @@ set(RENDER_CORE_LIB ${LIB_NAME} PARENT_SCOPE)
 list(APPEND LIBRARIES
     "${GLFW_LIBRARIES}"
     "${OPENGL_LIBRARIES}"
-    "${GLEW_LIBRARIES}"
 )
 
 #########################################################
@@ -19,7 +18,6 @@ list(APPEND LIBRARIES
 list(APPEND INCLUDES_DIRS
     "${GLFW_INCLUDE_DIR}"
     "${OPENGL_INCLUDE_DIR}"
-    "${GLEW_INCLUDE_DIRS}"
     "${GLM_INCLUDE_DIRS}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
 )

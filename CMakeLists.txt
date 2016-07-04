@@ -33,9 +33,9 @@ if(USE_LOCAL_DEPENDANCIES)
     find_package(GLFW REQUIRED)
 else()
     # GLFW_LIBRARIES
-    set(GLFW_BUILD_EXAMPLES OFF CACHE STRING "" FORCE)
-    set(GLFW_BUILD_TESTS    OFF CACHE STRING "" FORCE)
-    set(GLFW_INSTALL        OFF CACHE STRING "" FORCE)
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
     add_subdirectory(${DEPENDANCY_DIR}/glfw)
     list(APPEND GLFW_LIBRARIES glfw)
 endif()
@@ -49,14 +49,6 @@ endif()
 # OPENGL_INCLUDE_DIR  - the GL include directory
 # OPENGL_LIBRARIES    - Link these to use OpenGL and GLU
 find_package(OpenGL REQUIRED)
-
-#########################################################
-# FIND GLEW
-#########################################################
-# GLEW_INCLUDE_DIRS - include directories for GLEW
-# GLEW_LIBRARIES - libraries to link against GLEW
-# GLEW_FOUND - true if GLEW has been found and can be used
-find_package(GLEW REQUIRED)
 
 #########################################################
 # FIND GLM
@@ -97,10 +89,6 @@ if (NOT OPENMESH_FOUND)
 endif()
 
 if(USE_LOCAL_DEPENDANCIES)
-    if (NOT GLEW_FOUND)
-        list(APPEND MISSING glew)
-    endif()
-
     if (NOT GLFW_FOUND)
         list(APPEND MISSING glfw)
     endif()

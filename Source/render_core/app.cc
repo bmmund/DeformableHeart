@@ -1,6 +1,5 @@
 #include "app.hpp"
 
-#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <stdexcept>
@@ -76,15 +75,6 @@ App::App( int _width, int _height, std::string _title ):
     }
     glfwGetFramebufferSize(window, &pixelsX, &pixelsY);    // update width/height
     glfwMakeContextCurrent(window);
-
-    glewExperimental = GL_TRUE;
-    GLenum error = glewInit();
-    if( error != GLEW_OK)
-    {
-        glfwTerminate();
-        throw std::runtime_error(string("GLEW init fialed:")
-                                 + (const char*)glewGetErrorString(error));
-    }
 
     // Setup GLFW callbacks
     glfwSetWindowSizeCallback(window, App::windowSizeCallback);
