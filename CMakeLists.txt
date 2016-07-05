@@ -76,7 +76,14 @@ find_package(GLM REQUIRED)
 # OPENMESH_INCLUDE_DIRS    - the OPENMESH include directories
 # OPENMESH_LIBRARIES       - Link these to use OPENMESH
 # OPENMESH_LIBRARY_DIR     - directory where the libraries are included
-if(USE_LOCAL_DEPENDANCIES)
+
+if(CMAKE_GENERATOR STREQUAL Xcode)
+    message(WARNING "Repo's OpenMesh cannot be used when compiling with Xcode."
+    "The local version of OpenMesh will be linked with instead."
+    "Please use version 6.1 or greater.")
+endif()
+
+if(USE_LOCAL_DEPENDANCIES OR (CMAKE_GENERATOR STREQUAL Xcode))
     find_package(OpenMesh REQUIRED)
 else()
     set(BUILD_APPS OFF CACHE BOOL "" FORCE)
