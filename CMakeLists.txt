@@ -14,6 +14,9 @@ set(EXECUTABLE_OUTPUT_PATH
     "Directory where executables will be stored"
 )
 
+SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${EXECUTABLE_OUTPUT_PATH}")
+SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${EXECUTABLE_OUTPUT_PATH}")
+
 # Set the directory where dependancies are stored
 set(DEPENDANCY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Dependancies")
 

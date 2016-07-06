@@ -1,3 +1,23 @@
+#-------------------------------------------------------------------------------
+# Macros/Functions
+#-------------------------------------------------------------------------------
+function(COPY_RESOURCE dir name)
+    set(name ${${name}})
+    set(dir ${${dir}})
+    # Copy resource files
+    configure_file(${dir}/${name} ${EXECUTABLE_OUTPUT_PATH}/${name} COPYONLY)
+
+    # By default, Visual studio runs the executable from
+    # the CMAKE_CURRENT_BINARY_DIR folder. We copy the resource files here as well
+    # to make execution to work out of the box.
+    if(MSVC_IDE)
+        configure_file(${dir}/${name} ${CMAKE_CURRENT_BINARY_DIR}/${name} COPYONLY)
+    endif(MSVC_IDE)
+endfunction(COPY_RESOURCE)
+
+#-------------------------------------------------------------------------------
+# Project Setup
+#-------------------------------------------------------------------------------
 option(USE_OPENGL_LEGACY "Use fixed-pipeline opengl" ON)
 if(USE_OPENGL_LEGACY)
     add_definitions(-DUSE_OPENGL_LEGACY)
@@ -17,7 +37,15 @@ endif()
 set(APP_ICON_LOCATION ${RESOURCE_DIR}/${APP_ICON_NAME})
 set(HEART_MESH_NAME "Heart_Final_Flat.obj")
 set(HEART_MESH_LOCATION ${RESOURCE_DIR}/${HEART_MESH_NAME})
-add_definitions(-DHEART_MESH_PATH="${HEART_MESH_LOCATION}")
+set(HEART_MESH_MTL_NAME "Heart_Final_Flat.mtl")
+set(HEART_MESH_MTL_LOCATION ${RESOURCE_DIR}/${HEART_MESH_MTL_NAME})
+add_definitions(-DHEART_MESH_PATH=\"${HEART_MESH_NAME}\")
+
+# Copy resource files
+COPY_RESOURCE(RESOURCE_DIR HEART_MESH_NAME)
+COPY_RESOURCE(RESOURCE_DIR HEART_MESH_MTL_NAME)
+
+set(SHADER_LOCATION ${RESOURCE_DIR})
 #-------------------------------------------------------------------------------
 # Dependancies
 #-------------------------------------------------------------------------------
@@ -69,7 +97,19 @@ list(APPEND HEADERS
     HeartMesh.hpp
 )
 
-add_executable (${APP_NAME} ${SRCS} ${HEADERS} ${APP_ICON_LOCATION})
+file(GLOB PROJECT_SHADERS ${SHADER_LOCATION}/*.vert
+                          ${SHADER_LOCATION}/*.frag
+                          ${SHADER_LOCATION}/*.glsl)
+source_group("Shaders" FILES ${PROJECT_SHADERS})
+
+# Copy shader files to directory
+foreach(infileName ${PROJECT_SHADERS})
+    get_filename_component(FILENAME ${infileName} NAME)
+    get_filename_component(DIR ${infileName} DIRECTORY)
+    COPY_RESOURCE(DIR FILENAME)
+endforeach(infileName)
+
+add_executable (${APP_NAME} ${SRCS} ${HEADERS} ${APP_ICON_LOCATION} ${PROJECT_SHADERS})
 target_include_directories(${APP_NAME} PUBLIC ${INCLUDES_DIRS})
 target_link_libraries(${APP_NAME} ${LIBRARIES})
 set_property(TARGET ${APP_NAME} PROPERTY CXX_STANDARD 11)
