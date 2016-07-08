@@ -13,7 +13,7 @@ std::string const application_name = "DefoHeart";
 
 DefoHeart::DefoHeart()
     :   App(windowWidth, windowHeight, application_name),
-        mesh(HEART_MESH_PATH),
+        mesh(DODEDECAHEDRON_MESH_PATH),
         subDivider(),
         trackball(windowWidth, windowHeight),
         rayselector(windowWidth, windowHeight, &projM, &viewM, &modelM, &cameraOrigin),
@@ -242,8 +242,8 @@ void DefoHeart::initializeGL()
 void DefoHeart::resetModelView()
 {
     modelM = glm::mat4(1.0);
-    modelM = glm::rotate(modelM, glm::radians(180.0f), glm::vec3(0,1,0));
-    modelM = glm::translate(modelM, glm::vec3(0,-0.5,0));
+    //modelM = glm::rotate(modelM, glm::radians(180.0f), glm::vec3(0,1,0));
+    //modelM = glm::translate(modelM, glm::vec3(0,-0.5,0));
     cameraOrigin = glm::vec3(0.f, 1.0f, 1.4f);
     viewM = glm::lookAt(cameraOrigin, glm::vec3(0,0,0), glm::vec3(0,1,0));
 }
