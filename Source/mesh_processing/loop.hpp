@@ -12,6 +12,7 @@ public:
     Loop();
     ~Loop();
     void subdivide(TriMesh* mesh);
+    void setupMeshProperties(TriMesh * mesh);
     int getSubDivisionDepth(TriMesh* mesh);
 
 private:
@@ -25,8 +26,8 @@ private:
     const char* v_prop_even_odd_name = "v_prop_even_odd";
     const char* m_prop_subdev_depth_name = "m_prop_subdev_depth";
 
-    void setupMeshProperties(TriMesh* mesh);
-    void teardownMeshProperties(TriMesh* mesh);
+    void setupMeshProcessingProperties(TriMesh* mesh);
+    void teardownMeshProcessingProperties(TriMesh* mesh);
     void setVertexVertexPositions(TriMesh* mesh);
     void setEdgeVertexPositions(TriMesh* mesh);
     void splitEdges(TriMesh* mesh);

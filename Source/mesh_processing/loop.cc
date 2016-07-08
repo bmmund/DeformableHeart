@@ -16,8 +16,10 @@ Loop::~Loop()
 void Loop::subdivide(TriMesh *mesh)
 {
     std::cout<<"applying subdivision\n";
-    // setup mesh with required attributes
+
     setupMeshProperties(mesh);
+    // setup mesh with required attributes
+    setupMeshProcessingProperties(mesh);
     // Find vertex-vertex positions
     setVertexVertexPositions(mesh);
     // Find edge-vertex positions
@@ -29,25 +31,13 @@ void Loop::subdivide(TriMesh *mesh)
     // Apply geometry changes
     updateGeometries(mesh);
     // remove subdivision attributes
-    teardownMeshProperties(mesh);
+    teardownMeshProcessingProperties(mesh);
+    // Subdivision complete, increase subdivision depth
+    mesh->property(subdevDepth)++;
 }
 
-int Loop::getSubDivisionDepth(TriMesh * mesh)
+void Loop::setupMeshProperties(TriMesh * mesh)
 {
-    int subDevDepth = 0;
-    OpenMesh::MPropHandleT<int> subdevDepthCheck;
-    if (mesh->get_property_handle(subdevDepthCheck, m_prop_subdev_depth_name))
-    {
-        subDevDepth = mesh->property(subdevDepth);
-    }
-    return subDevDepth;
-}
-
-void Loop::setupMeshProperties(TriMesh *mesh)
-{
-    mesh->add_property(vertPoint, vv_prop_name);
-    mesh->add_property(edgePoint, ev_prop_name);
-
     // TODO store these in the mesh model object code
     // make sure we don't redefine even odd property
     OpenMesh::VPropHandleT<bool> evenOddCheck;
@@ -77,12 +67,27 @@ void Loop::setupMeshProperties(TriMesh *mesh)
     }
 }
 
-void Loop::teardownMeshProperties(TriMesh *mesh)
+int Loop::getSubDivisionDepth(TriMesh * mesh)
+{
+    int subDevDepth = 0;
+    OpenMesh::MPropHandleT<int> subdevDepthCheck;
+    if (mesh->get_property_handle(subdevDepthCheck, m_prop_subdev_depth_name))
+    {
+        subDevDepth = mesh->property(subdevDepth);
+    }
+    return subDevDepth;
+}
+
+void Loop::setupMeshProcessingProperties(TriMesh *mesh)
+{
+    mesh->add_property(vertPoint, vv_prop_name);
+    mesh->add_property(edgePoint, ev_prop_name);
+}
+
+void Loop::teardownMeshProcessingProperties(TriMesh *mesh)
 {
     mesh->remove_property(vertPoint);
     mesh->remove_property(edgePoint);
-    // increase subdivision depth
-    mesh->property(subdevDepth)++;
 }
 
 void Loop::setVertexVertexPositions(TriMesh* mesh)
