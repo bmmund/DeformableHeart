@@ -17,10 +17,12 @@ private:
     OpenMesh::VPropHandleT<TriMesh::Point> vertPoint;
     OpenMesh::EPropHandleT<TriMesh::Point> edgePoint;
     OpenMesh::VPropHandleT<bool> isEvenVertex;
+	OpenMesh::MPropHandleT<int> subdevDepth;    // Refers to how many iterations of subdivision performed
 
     const char* vv_prop_name = "vv_prop";
     const char* ev_prop_name = "ev_prop";
     const char* v_prop_even_odd_name = "v_prop_even_odd";
+    const char* m_prop_subdev_depth_name = "m_prop_subdev_depth";
 
     void setupMeshProperties(TriMesh* mesh);
     void teardownMeshProperties(TriMesh* mesh);

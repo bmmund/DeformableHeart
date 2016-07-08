@@ -37,6 +37,19 @@ void Loop::setupMeshProperties(TriMesh *mesh)
     mesh->add_property(vertPoint, vv_prop_name);
     mesh->add_property(edgePoint, ev_prop_name);
     mesh->add_property(isEvenVertex, v_prop_even_odd_name);
+    // Test to see if there is no subdev property, if there isn't initialize it
+    OpenMesh::MPropHandleT<int> test;
+    if (!mesh->get_property_handle(test, m_prop_subdev_depth_name))
+    {
+        mesh->add_property(subdevDepth, m_prop_subdev_depth_name);
+        mesh->property(subdevDepth) = 0;
+        std::cout << "Mesh was not previously subdivided.\n";
+    }
+    else
+    {
+        std::cout << "Mesh was at subdivision level " <<
+            mesh->property(subdevDepth) << " when called.\n";
+    }
 }
 
 void Loop::teardownMeshProperties(TriMesh *mesh)
@@ -44,6 +57,8 @@ void Loop::teardownMeshProperties(TriMesh *mesh)
     mesh->remove_property(vertPoint);
     mesh->remove_property(edgePoint);
     mesh->remove_property(isEvenVertex);
+    // increase subdivision depth
+    mesh->property(subdevDepth)++;
 }
 
 void Loop::setVertexVertexPositions(TriMesh* mesh)
