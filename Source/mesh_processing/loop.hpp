@@ -12,6 +12,7 @@ public:
     Loop();
     ~Loop();
     void subdivide(TriMesh* mesh);
+    int getSubDivisionDepth(TriMesh* mesh);
 
 private:
     OpenMesh::VPropHandleT<TriMesh::Point> vertPoint;

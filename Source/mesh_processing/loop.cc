@@ -32,6 +32,17 @@ void Loop::subdivide(TriMesh *mesh)
     teardownMeshProperties(mesh);
 }
 
+int Loop::getSubDivisionDepth(TriMesh * mesh)
+{
+    int subDevDepth = 0;
+    OpenMesh::MPropHandleT<int> subdevDepthCheck;
+    if (mesh->get_property_handle(subdevDepthCheck, m_prop_subdev_depth_name))
+    {
+        subDevDepth = mesh->property(subdevDepth);
+    }
+    return subDevDepth;
+}
+
 void Loop::setupMeshProperties(TriMesh *mesh)
 {
     mesh->add_property(vertPoint, vv_prop_name);

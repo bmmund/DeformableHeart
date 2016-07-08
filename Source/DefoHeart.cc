@@ -284,7 +284,8 @@ void DefoHeart::keyCallbackImp(GLFWwindow* window, int key, int scancode, int ac
         glfwSetWindowShouldClose(window, GL_TRUE);
     else if(key == GLFW_KEY_S && action == GLFW_PRESS)
     {
-        subDivider.subdivide(mesh.getTriMesh());
+        if(subDivider.getSubDivisionDepth(mesh.getTriMesh())<1)
+            subDivider.subdivide(mesh.getTriMesh());
     }
     else if(key == GLFW_KEY_W && action == GLFW_PRESS)
     {
