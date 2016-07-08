@@ -73,6 +73,7 @@ void DefoHeart::updateGeometries()
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     glColor3f(1.0, 1.0, 1.0);
     drawMeshPoints();
+    drawEvenOddPoints();
 
     if(useLighting)
         glEnable(GL_LIGHTING);
@@ -145,6 +146,27 @@ void DefoHeart::drawMeshPoints()
     glEnd();
 }
 
+void DefoHeart::drawEvenOddPoints()
+{
+    glPointSize(5);
+    glBegin(GL_POINTS);
+    TriMesh* meshPtr = mesh.getTriMesh();
+    for (TriMesh::VertexIter v_it = meshPtr->vertices_sbegin();
+        v_it != meshPtr->vertices_end(); ++v_it)
+    {
+        TriMesh::Point p = meshPtr->point(*v_it);
+        OpenMesh::VPropHandleT<bool> isEvenVertex;
+        if (!meshPtr->get_property_handle(isEvenVertex, "v_prop_even_odd"))
+            break;
+        bool isEven = meshPtr->property(isEvenVertex, *v_it);
+        if (isEven)
+            glColor3f(0.0, 1.0, 0.0);
+        else
+            glColor3f(0.0, 0.0, 1.0);
+        glVertex3fv(p.data());
+    }
+    glEnd();
+}
 void DefoHeart::drawMeshPoint(int index)
 {
     TriMesh* meshPtr = mesh.getTriMesh();

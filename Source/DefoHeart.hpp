@@ -38,6 +38,7 @@ private:
     void drawMeshNormals();
     void drawMeshPoints();
     void drawMeshPoint(int index);
+    void drawEvenOddPoints();
     void drawModelGnomenPoints();
     void resetModelView();
     void resize();

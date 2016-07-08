@@ -36,10 +36,18 @@ void Loop::setupMeshProperties(TriMesh *mesh)
 {
     mesh->add_property(vertPoint, vv_prop_name);
     mesh->add_property(edgePoint, ev_prop_name);
-    mesh->add_property(isEvenVertex, v_prop_even_odd_name);
+
+    // TODO store these in the mesh model object code
+    // make sure we don't redefine even odd property
+    OpenMesh::VPropHandleT<bool> evenOddCheck;
+    if (!mesh->get_property_handle(evenOddCheck, v_prop_even_odd_name))
+    {
+        mesh->add_property(isEvenVertex, v_prop_even_odd_name);
+    }
+
     // Test to see if there is no subdev property, if there isn't initialize it
-    OpenMesh::MPropHandleT<int> test;
-    if (!mesh->get_property_handle(test, m_prop_subdev_depth_name))
+    OpenMesh::MPropHandleT<int> subdevDepthCheck;
+    if (!mesh->get_property_handle(subdevDepthCheck, m_prop_subdev_depth_name))
     {
         mesh->add_property(subdevDepth, m_prop_subdev_depth_name);
         mesh->property(subdevDepth) = 0;
@@ -50,13 +58,18 @@ void Loop::setupMeshProperties(TriMesh *mesh)
         std::cout << "Mesh was at subdivision level " <<
             mesh->property(subdevDepth) << " when called.\n";
     }
+    // When we subdivid, all points are now considered even
+    for (auto& vertIter = mesh->vertices_begin();
+        vertIter != mesh->vertices_end(); ++vertIter)
+    {
+        mesh->property(isEvenVertex, *vertIter) = true;
+    }
 }
 
 void Loop::teardownMeshProperties(TriMesh *mesh)
 {
     mesh->remove_property(vertPoint);
     mesh->remove_property(edgePoint);
-    mesh->remove_property(isEvenVertex);
     // increase subdivision depth
     mesh->property(subdevDepth)++;
 }
