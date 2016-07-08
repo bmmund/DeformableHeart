@@ -34,16 +34,16 @@ void Loop::subdivide(TriMesh *mesh)
 
 void Loop::setupMeshProperties(TriMesh *mesh)
 {
-    mesh->add_property(vertPoint, "vv_prop");
-    mesh->add_property(edgePoint, "ev_prop");
-    mesh->add_property(isEdgeVertex);
+    mesh->add_property(vertPoint, vv_prop_name);
+    mesh->add_property(edgePoint, ev_prop_name);
+    mesh->add_property(isEvenVertex, v_prop_even_odd_name);
 }
 
 void Loop::teardownMeshProperties(TriMesh *mesh)
 {
     mesh->remove_property(vertPoint);
     mesh->remove_property(edgePoint);
-    mesh->remove_property(isEdgeVertex);
+    mesh->remove_property(isEvenVertex);
 }
 
 void Loop::setVertexVertexPositions(TriMesh* mesh)
@@ -78,7 +78,7 @@ void Loop::setVertexVertexPositions(TriMesh* mesh)
         }
         // add calculated value to vertex-vertex
         mesh->property(vertPoint, *vertIter) = pos;
-        mesh->property( isEdgeVertex, *vertIter ) = false;
+        mesh->property( isEvenVertex, *vertIter ) = true;
     }
 }
 
@@ -173,7 +173,7 @@ void Loop::splitEdge(TriMesh* mesh, const TriMesh::EdgeHandle& _eh)
 
     // retrieve position stored in edge and store in vertex for later
     mesh->property( vertPoint, evh ) = mesh->property( edgePoint, _eh );
-    mesh->property( isEdgeVertex, evh ) = true;
+    mesh->property( isEvenVertex, evh ) = false;
 
     // get incomming half edge
     if(mesh->is_boundary(_eh))
@@ -250,7 +250,7 @@ void Loop::splitFaces(TriMesh* mesh)
         for(hehIter = mesh->fh_iter(*fit); hehIter.is_valid(); ++hehIter)
         {
             TriMesh::HalfedgeHandle heh(*hehIter);
-            if(!mesh->property(isEdgeVertex, mesh->from_vertex_handle(heh)))
+            if(mesh->property(isEvenVertex, mesh->from_vertex_handle(heh)))
                {
                    hehHandles.push_back(heh);
                }

@@ -16,13 +16,16 @@ public:
 private:
     OpenMesh::VPropHandleT<TriMesh::Point> vertPoint;
     OpenMesh::EPropHandleT<TriMesh::Point> edgePoint;
-    OpenMesh::VPropHandleT<bool> isEdgeVertex;
+    OpenMesh::VPropHandleT<bool> isEvenVertex;
+
+    const char* vv_prop_name = "vv_prop";
+    const char* ev_prop_name = "ev_prop";
+    const char* v_prop_even_odd_name = "v_prop_even_odd";
 
     void setupMeshProperties(TriMesh* mesh);
     void teardownMeshProperties(TriMesh* mesh);
     void setVertexVertexPositions(TriMesh* mesh);
     void setEdgeVertexPositions(TriMesh* mesh);
-    void compute_midpoint(TriMesh* mesh, const TriMesh::EdgeHandle& _eh);
     void splitEdges(TriMesh* mesh);
     void splitEdge(TriMesh* mesh, const TriMesh::EdgeHandle& _eh);
     void splitFaces(TriMesh* mesh);
