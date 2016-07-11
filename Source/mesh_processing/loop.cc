@@ -408,12 +408,12 @@ float Loop::getWeight(int valence)
     //TODO: Replace with pre-calculated values
     // weight = (1/n) * ( (5/8) - ((3/8) + ((1/4)*cos(2*pi/n))^2)
     float weight;
-    weight = cos(2.0*M_PI/valence);
-    weight = (1.0/4.0) * weight;
-    weight = (3.0/8.0) + weight;
+    weight = cos(2.0f*M_PI/valence);
+    weight = (1.0f/4.0f) * weight;
+    weight = (3.0f/8.0f) + weight;
     weight = weight * weight;
-    weight = (5.0/8.0) - weight;
-    weight = (1.0/6.0) * weight;
+    weight = (5.0f/8.0f) - weight;
+    weight = (1.0f/6.0f) * weight;
     return weight;
 }
 
