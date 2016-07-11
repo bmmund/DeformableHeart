@@ -67,6 +67,39 @@ void Loop::setupMeshProperties(TriMesh * mesh)
     }
 }
 
+void Loop::decompose(TriMesh * mesh)
+{
+    // setup mesh with required attributes
+    setupMeshProcessingProperties(mesh);
+
+    // initialize all vertex positions to current position
+    for (auto& vertIter = mesh->vertices_begin();
+        vertIter != mesh->vertices_end();
+        ++vertIter)
+    {
+        mesh->property(vertPoint, *vertIter) = mesh->point(*vertIter);
+    }
+
+    unsplitFaces(mesh);
+    // All even verts have no coarse locations
+    // Find vertex-vertex positions
+    findCoarseEvenPositions(mesh);
+    removeOddVertices(mesh);
+    // Find edge-vertex positions
+    //setEdgeVertexPositions(mesh);
+    // Split edge to create new vert
+    //splitEdges(mesh);
+    // Split faces
+    //splitFaces(mesh);
+
+    // Apply geometry changes
+    updateGeometries(mesh);
+    // remove subdivision attributes
+    teardownMeshProcessingProperties(mesh);
+    // Subdivision complete, increase subdivision depth
+    mesh->property(subdevDepth)--;
+}
+
 int Loop::getSubDivisionDepth(TriMesh * mesh)
 {
     int subDevDepth = 0;
@@ -395,4 +428,131 @@ void Loop::updateGeometries(TriMesh* mesh)
         mesh->set_point(*vertIter, mesh->property(vertPoint, *vertIter));
     }
     mesh->update_normals();
+}
+
+void Loop::findCoarseEvenPositions(TriMesh * mesh)
+{
+    for (auto& vertIter = mesh->vertices_begin(); vertIter != mesh->vertices_end(); ++vertIter)
+    {
+        TriMesh::Point pos(0.0, 0.0, 0.0);
+
+        // only do for even verts
+        if (mesh->property(isEvenVertex,*vertIter))
+        {
+            continue;
+        }
+
+        // Two cases: boundary or non-boundary vertex
+        if (mesh->is_boundary(*vertIter))
+        {
+            //TODO: support boundary verts
+            std::cout << "boundary verts!\n";
+            return;
+        }
+        else
+        {
+            int valence = mesh->valence(*vertIter);
+            // Based on L. Olsen's work, they use beta for getWeight()
+            // leaving alpha for a reverse-subdivision weight.
+            // alpha =  8*beta/5
+            float alpha = (8*getWeight(valence))/5;
+            TriMesh::VertexVertexIter vertVertIter;
+            // alpha * SUM(Vj)
+            for (vertVertIter = mesh->vv_iter(*vertIter);
+                vertVertIter.is_valid();
+                ++vertVertIter)
+            {
+                pos += mesh->point(*vertVertIter);
+            }
+            // c0 = (1/(1-na))f0 - (a/(1-na))sum(fi)
+            pos = ( (1.0f/(1.0f - valence*alpha)) * mesh->point(*vertIter) ) -
+                    ( (alpha/(1.0f-valence*alpha)) * (pos) );
+        }
+        // add calculated value to vertex-vertex
+        mesh->property(vertPoint, *vertIter) = pos;
+    }
+}
+
+void Loop::removeOddVertices(TriMesh * mesh)
+{
+    for (auto& vertIter = mesh->vertices_begin(); vertIter != mesh->vertices_end(); ++vertIter)
+    {
+        TriMesh::Point pos(0.0, 0.0, 0.0);
+
+        // only do for odd verts
+        if (!mesh->property(isEvenVertex, *vertIter))
+        {
+            continue;
+        }
+
+        // Two cases: boundary or non-boundary vertex
+        if (mesh->is_boundary(*vertIter))
+        {
+            //TODO: support boundary verts
+            std::cout << "boundary verts!\n";
+            return;
+        }
+        else
+        {
+            // remove the vertex and fix the faces
+        }
+    }
+}
+
+void Loop::unsplitFaces(TriMesh * mesh)
+{
+    TriMesh::FaceIter fit, f_end;
+    f_end = mesh->faces_end();
+    // Find faces with only odd vertices
+    for (fit = mesh->faces_begin(); fit != f_end; ++fit)
+    {
+        std::cout << "fit:" << (*fit).idx();
+        TriMesh::FaceVertexIter vit;
+        bool isOddTri = true;
+        for (vit = mesh->fv_iter(*fit); vit.is_valid(); ++vit)
+        {
+            if (mesh->property(isEvenVertex, *vit))
+            {
+                isOddTri = false;
+                break;
+            }
+        }
+        if (isOddTri)
+        {
+            // unsplit the odd triangle
+        }
+        else
+        {
+            // continue
+            continue;
+        }
+
+
+#if 0
+        std::vector<TriMesh::HalfedgeHandle> hehHandles;
+        TriMesh::FaceHalfedgeIter hehIter;
+        // Find the 3 half edges we care about splitting
+        for (hehIter = mesh->fh_iter(*fit); hehIter.is_valid(); ++hehIter)
+        {
+            TriMesh::HalfedgeHandle heh(*hehIter);
+            if (mesh->property(isEvenVertex, mesh->from_vertex_handle(heh)))
+            {
+                hehHandles.push_back(heh);
+            }
+        }
+        if (hehHandles.size() != 3)
+        {
+            std::cerr << "Edges not properly split!\n";
+            return;
+        }
+        else
+        {
+            for (int i = 0; i < hehHandles.size(); i++)
+            {
+                TriMesh::HalfedgeHandle heh(hehHandles[i]);
+                splitCorner(mesh, &heh);
+            }
+        }
+#endif
+    }
 }

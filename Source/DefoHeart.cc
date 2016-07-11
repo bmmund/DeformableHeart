@@ -287,6 +287,11 @@ void DefoHeart::keyCallbackImp(GLFWwindow* window, int key, int scancode, int ac
         if(subDivider.getSubDivisionDepth(mesh.getTriMesh())<1)
             subDivider.subdivide(mesh.getTriMesh());
     }
+    else if (key == GLFW_KEY_D && action == GLFW_PRESS)
+    {
+        if (subDivider.getSubDivisionDepth(mesh.getTriMesh())>=1)
+            subDivider.decompose(mesh.getTriMesh());
+    }
     else if(key == GLFW_KEY_W && action == GLFW_PRESS)
     {
         drawWireFrame = !drawWireFrame;

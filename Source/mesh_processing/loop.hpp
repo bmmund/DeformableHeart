@@ -13,6 +13,7 @@ public:
     ~Loop();
     void subdivide(TriMesh* mesh);
     void setupMeshProperties(TriMesh * mesh);
+    void decompose(TriMesh* mesh);
     int getSubDivisionDepth(TriMesh* mesh);
 
 private:
@@ -37,5 +38,9 @@ private:
     float getWeight(int valence);
     void updateGeometries(TriMesh* mesh);
 
+    // decomposition
+    void findCoarseEvenPositions(TriMesh* mesh);
+    void removeOddVertices(TriMesh* mesh);
+    void unsplitFaces(TriMesh* mesh);
 };
 #endif /* __LOOP__HPP */
