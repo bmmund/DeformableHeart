@@ -2,7 +2,10 @@
 #include <cmath>
 #include <iostream>
 #include <vector>
-
+#include <assert.h>
+#include <OpenMesh\Tools\Utils\MeshCheckerT.hh>
+#include <OpenMesh\Tools\Subdivider\Uniform\LoopT.hh>
+#define USE_OPENMESH_LOOP false
 Loop::Loop()
 {
 
@@ -15,9 +18,16 @@ Loop::~Loop()
 
 void Loop::subdivide(TriMesh *mesh)
 {
+    OpenMesh::Utils::MeshCheckerT<TriMesh> mt(*mesh);
     std::cout<<"applying subdivision\n";
-
     setupMeshProperties(mesh);
+#if USE_OPENMESH_LOOP
+    OpenMesh::Subdivider::Uniform::LoopT<TriMesh> subd;
+    subd.attach(*mesh);
+    subd(1, true);
+    subd.detach();
+#else
+
     // setup mesh with required attributes
     setupMeshProcessingProperties(mesh);
     // Find vertex-vertex positions
@@ -32,8 +42,10 @@ void Loop::subdivide(TriMesh *mesh)
     updateGeometries(mesh);
     // remove subdivision attributes
     teardownMeshProcessingProperties(mesh);
+#endif
     // Subdivision complete, increase subdivision depth
     mesh->property(subdevDepth)++;
+    assert(mt.check());
 }
 
 void Loop::setupMeshProperties(TriMesh * mesh)
@@ -71,7 +83,6 @@ void Loop::decompose(TriMesh * mesh)
 {
     // setup mesh with required attributes
     setupMeshProcessingProperties(mesh);
-
     // initialize all vertex positions to current position
     for (auto& vertIter = mesh->vertices_begin();
         vertIter != mesh->vertices_end();
@@ -81,10 +92,14 @@ void Loop::decompose(TriMesh * mesh)
     }
 
     unsplitFaces(mesh);
+    OpenMesh::Utils::MeshCheckerT<TriMesh> mt(*mesh);
+    assert(mt.check());
     // All even verts have no coarse locations
     // Find vertex-vertex positions
     findCoarseEvenPositions(mesh);
     removeOddVertices(mesh);
+
+    assert(mt.check());
     // Find edge-vertex positions
     //setEdgeVertexPositions(mesh);
     // Split edge to create new vert
@@ -94,11 +109,13 @@ void Loop::decompose(TriMesh * mesh)
 
     // Apply geometry changes
     updateGeometries(mesh);
+    assert(mt.check());
     // remove subdivision attributes
     teardownMeshProcessingProperties(mesh);
     // Subdivision complete, increase subdivision depth
     mesh->property(subdevDepth)--;
 }
+
 
 int Loop::getSubDivisionDepth(TriMesh * mesh)
 {
@@ -109,6 +126,16 @@ int Loop::getSubDivisionDepth(TriMesh * mesh)
         subDevDepth = mesh->property(subdevDepth);
     }
     return subDevDepth;
+}
+
+bool Loop::isVertEven(TriMesh * mesh, TriMesh::VertexHandle vh)
+{
+    OpenMesh::VPropHandleT<bool> isEvenCheck;
+    if (mesh->get_property_handle(isEvenCheck, v_prop_even_odd_name))
+    {
+        return mesh->property(isEvenVertex, vh);
+    }
+    return true;
 }
 
 void Loop::setupMeshProcessingProperties(TriMesh *mesh)
@@ -348,7 +375,6 @@ void Loop::splitFaces(TriMesh* mesh)
     }
 }
 
-
 void Loop::splitCorner(TriMesh* mesh, TriMesh::HalfedgeHandle* he)
 {
 
@@ -413,7 +439,7 @@ float Loop::getWeight(int valence)
     weight = (3.0f/8.0f) + weight;
     weight = weight * weight;
     weight = (5.0f/8.0f) - weight;
-    weight = (1.0f/6.0f) * weight;
+    weight = (1.0f/valence) * weight;
     return weight;
 }
 
@@ -455,7 +481,7 @@ void Loop::findCoarseEvenPositions(TriMesh * mesh)
             // Based on L. Olsen's work, they use beta for getWeight()
             // leaving alpha for a reverse-subdivision weight.
             // alpha =  8*beta/5
-            float alpha = (8*getWeight(valence))/5;
+            float alpha = (8.0f*getWeight(valence))/5.0f;
             TriMesh::VertexVertexIter vertVertIter;
             // alpha * SUM(Vj)
             for (vertVertIter = mesh->vv_iter(*vertIter);
@@ -480,7 +506,7 @@ void Loop::removeOddVertices(TriMesh * mesh)
         TriMesh::Point pos(0.0, 0.0, 0.0);
 
         // only do for odd verts
-        if (!mesh->property(isEvenVertex, *vertIter))
+        if (mesh->property(isEvenVertex, *vertIter))
         {
             continue;
         }
@@ -495,7 +521,13 @@ void Loop::removeOddVertices(TriMesh * mesh)
         else
         {
             // remove the vertex and fix the faces
+            std::cout << "vert " << (*vertIter).idx() << " val: "<< mesh->valence(*vertIter)<<"\n";
+            TriMesh::HalfedgeHandle heh(mesh->halfedge_handle(*vertIter));
+            //heh = mesh->opposite_halfedge_handle(heh);
+            assert((mesh->is_collapse_ok(heh)) == true);
+            mesh->collapse(heh);
         }
+        mesh->garbage_collection();
     }
 }
 
@@ -503,10 +535,14 @@ void Loop::unsplitFaces(TriMesh * mesh)
 {
     TriMesh::FaceIter fit, f_end;
     f_end = mesh->faces_end();
+    int count=0;
+    std::vector<TriMesh::FaceHandle> fhandles;
     // Find faces with only odd vertices
     for (fit = mesh->faces_begin(); fit != f_end; ++fit)
     {
-        std::cout << "fit:" << (*fit).idx();
+        std::cout << "fit:" << (*fit).idx()<<"\n";
+        mesh->request_face_status();
+        assert(!mesh->status(*fit).deleted());
         TriMesh::FaceVertexIter vit;
         bool isOddTri = true;
         for (vit = mesh->fv_iter(*fit); vit.is_valid(); ++vit)
@@ -519,40 +555,157 @@ void Loop::unsplitFaces(TriMesh * mesh)
         }
         if (isOddTri)
         {
+            fhandles.push_back(*fit);
+            std::vector<TriMesh::VertexHandle> evenVerts;
+            std::vector<TriMesh::HalfedgeHandle> hehHandles;
+            // Find the 3 half edges we care about splitting
+            //for (auto& hehIter = mesh->fh_iter(*fit); hehIter.is_valid(); ++hehIter)
+            //{
+            //    // find each even vert within the opposite face
+            //    TriMesh::HalfedgeHandle heh(*hehIter);
+            //    hehHandles.push_back(heh);
+            //}
+            TriMesh::FaceHandle f(*fit);
+            // for all half-edge handles in stack, pop and unsplit
+            //for (auto& heh : hehHandles)
+            //{
+            //    TriMesh::VertexHandle v1 = mesh->to_vertex_handle(heh);
+            //    TriMesh::VertexHandle v2 = mesh->from_vertex_handle(heh);
+            //    f = mesh->remove_edge(mesh->edge_handle(heh));
+            //    mesh->adjust_outgoing_halfedge(v1);
+            //    mesh->adjust_outgoing_halfedge(v2);
+            //}
+            //std::cout << "valence:";
+            //while (mesh->valence(f) != 6)
+            //{
+            //    std::cout << mesh->valence(f) << " ";
+            //    TriMesh::HalfedgeHandle heh(mesh->halfedge_handle(f));
+            //    while (!doesHalfEdgeContainOddOnly(mesh, heh))
+            //        heh = mesh->next_halfedge_handle(heh);
+            //    f = mesh->remove_edge(mesh->edge_handle(heh));
+            //}
+            //std::cout << "\n";
+            //count++;
+            //std::cout << "f " << f.idx() << " val:" << mesh->valence(f) << "\n";
+                //unsplitCorner(mesh, &heh);
+            //TriMesh::HalfedgeHandle oppHeh = mesh->opposite_halfedge_handle(heh);
+            //if (mesh->property(isEvenVertex, mesh->from_vertex_handle(heh)))
+            //{
+
+            //}
             // unsplit the odd triangle
+            //mesh->delete_face(*fit, true);
         }
         else
         {
             // continue
             continue;
         }
-
-
-#if 0
-        std::vector<TriMesh::HalfedgeHandle> hehHandles;
-        TriMesh::FaceHalfedgeIter hehIter;
-        // Find the 3 half edges we care about splitting
-        for (hehIter = mesh->fh_iter(*fit); hehIter.is_valid(); ++hehIter)
-        {
-            TriMesh::HalfedgeHandle heh(*hehIter);
-            if (mesh->property(isEvenVertex, mesh->from_vertex_handle(heh)))
-            {
-                hehHandles.push_back(heh);
-            }
-        }
-        if (hehHandles.size() != 3)
-        {
-            std::cerr << "Edges not properly split!\n";
-            return;
-        }
-        else
-        {
-            for (int i = 0; i < hehHandles.size(); i++)
-            {
-                TriMesh::HalfedgeHandle heh(hehHandles[i]);
-                splitCorner(mesh, &heh);
-            }
-        }
-#endif
     }
+    for (auto& f : fhandles)
+    {
+        std::vector<TriMesh::HalfedgeHandle> hehHandles;
+        // Find the 3 half edges we care about splitting
+        for (auto& hehIter = mesh->fh_iter(f); hehIter.is_valid(); ++hehIter)
+        {
+            // find each even vert within the opposite face
+            TriMesh::HalfedgeHandle heh(*hehIter);
+            hehHandles.push_back(heh);
+            std::cout << "heh idx:" << heh.idx()<< " ";           
+        }
+        //for(auto& heh : hehHandles)
+        while (!hehHandles.empty())
+        {
+            //mesh->remove_edge(mesh->edge_handle(heh));
+            //unsplitCorner(mesh, hehHandles.back());
+            mesh->remove_edge(mesh->edge_handle(hehHandles.back()));
+            hehHandles.pop_back();
+        }
+    }
+    mesh->garbage_collection();
+    std::cout << "faces:" << mesh->n_faces() << std::endl;
+    for (fit = mesh->faces_sbegin(); fit != f_end; ++fit)
+    {
+        if(!mesh->is_valid_handle(*fit))
+            std::cout << "invalid face \n";
+        else
+            std::cout << "f " << (*fit).idx() << " val:" << mesh->valence((*fit)) << "\n";
+        count++;
+    }
+    std::cout << "faces counted:" << count << std::endl;
+}
+
+bool Loop::doesHalfEdgeContainOddOnly(TriMesh * mesh, const OpenMesh::HalfedgeHandle &heh)
+{
+    TriMesh::VertexHandle v1(mesh->to_vertex_handle(heh));
+    TriMesh::VertexHandle v2(mesh->from_vertex_handle(heh));
+    return (!mesh->property(isEvenVertex, v1) && !mesh->property(isEvenVertex, v2));
+}
+
+void Loop::unsplitCorner(TriMesh * mesh, TriMesh::HalfedgeHandle heh)
+{
+    // f1 = odd face and f2 = face we want to merge into f1 (unsplit)
+    // heh1 = halfedge on the shared edge between the two faces
+    // fxhehy = halfedge on face x enumerated CCW from heh1
+    //TriMesh::HalfedgeHandle f1heh1(*he);
+    //TriMesh::HalfedgeHandle f2heh1(mesh->opposite_halfedge_handle(f1heh1));
+    //TriMesh::FaceHandle f1h(mesh->face_handle(f1heh1));
+    //TriMesh::FaceHandle f2h(mesh->opposite_face_handle(f1heh1));
+
+    //// if edge vertices' outgoing halfedge is either of fxheh1 adjust it
+    //TriMesh::VertexHandle evh1(mesh->from_vertex_handle(f1heh1));
+    //TriMesh::VertexHandle evh2(mesh->from_vertex_handle(f2heh1));
+    //if (mesh->halfedge_handle(evh1) == f1heh1)
+    //    mesh->set_halfedge_handle(evh1, mesh->next_halfedge_handle(f2heh1));
+    //if (mesh->halfedge_handle(evh2) == f2heh1)
+    //    mesh->set_halfedge_handle(evh2, mesh->next_halfedge_handle(f1heh1));
+    //don't allow "dangling" vertices and edges
+
+    TriMesh::HalfedgeHandle heh0 = heh;
+    TriMesh::HalfedgeHandle heh1 = mesh->opposite_halfedge_handle(heh0);
+    //std::cout << "heh2 idx:" << heh.idx() << " ";
+    //deal with the faces
+    TriMesh::FaceHandle rem_fh = mesh->face_handle(heh0), del_fh = mesh->face_handle(heh1);
+
+    assert(del_fh.is_valid());
+
+    //fix the halfedge relations
+    TriMesh::HalfedgeHandle prev_heh0 = mesh->prev_halfedge_handle(heh0);
+    TriMesh::HalfedgeHandle prev_heh1 = mesh->prev_halfedge_handle(heh1);
+
+    TriMesh::HalfedgeHandle next_heh0 = mesh->next_halfedge_handle(heh0);
+    TriMesh::HalfedgeHandle next_heh1 = mesh->next_halfedge_handle(heh1);
+
+    mesh->set_next_halfedge_handle(prev_heh0, next_heh1);
+    mesh->set_next_halfedge_handle(prev_heh1, next_heh0);
+    //correct outgoing vertex handles for the _eh vertices (if needed)
+    TriMesh::VertexHandle vh0 = mesh->to_vertex_handle(heh0);
+    TriMesh::VertexHandle vh1 = mesh->to_vertex_handle(heh1);
+
+    if (mesh->halfedge_handle(vh0) == heh1)
+    {
+        mesh->set_halfedge_handle(vh0, next_heh0);
+    }
+    if (mesh->halfedge_handle(vh1) == heh0)
+    {
+        mesh->set_halfedge_handle(vh1, next_heh1);
+    }
+
+    //correct the hafledge handle of rem_fh if needed and preserve its first vertex
+    if (mesh->halfedge_handle(rem_fh) == heh0)
+    {//rem_fh is the face at heh0
+        mesh->set_halfedge_handle(rem_fh, prev_heh1);
+    }
+
+    for (TriMesh::FaceHalfedgeIter fh_it = mesh->fh_iter(rem_fh); fh_it.is_valid(); ++fh_it)
+    {//set the face handle of the halfedges of del_fh to point to rem_fh
+        mesh->set_face_handle(*fh_it, rem_fh);
+    }
+
+    assert(!mesh->status(del_fh).deleted());
+    mesh->status(heh0).set_deleted(true);
+    mesh->status(heh1).set_deleted(true);
+    mesh->status(del_fh).set_deleted(true);
+    mesh->garbage_collection();
+    //return rem_fh;//returns the remaining face handle
 }
