@@ -12,6 +12,13 @@ public:
     Loop();
     ~Loop();
     void subdivide(TriMesh* mesh);
+<<<<<<< Updated upstream
+=======
+    void setupMeshProperties(TriMesh * mesh);
+    void decompose(TriMesh* mesh);
+    int getSubDivisionDepth(TriMesh* mesh);
+    bool isVertEven(TriMesh* mesh, TriMesh::VertexHandle vh);
+>>>>>>> Stashed changes
 
 private:
     OpenMesh::VPropHandleT<TriMesh::Point> vertPoint;
@@ -35,5 +42,14 @@ private:
     float getWeight(int valence);
     void updateGeometries(TriMesh* mesh);
 
+<<<<<<< Updated upstream
+=======
+    // decomposition
+    void findCoarseEvenPositions(TriMesh* mesh);
+    void removeOddVertices(TriMesh* mesh);
+    void unsplitFaces(TriMesh* mesh);
+    bool doesHalfEdgeContainOddOnly(TriMesh * mesh, const OpenMesh::HalfedgeHandle &heh);
+    void unsplitCorner(TriMesh* mesh, TriMesh::HalfedgeHandle heh);
+>>>>>>> Stashed changes
 };
 #endif /* __LOOP__HPP */

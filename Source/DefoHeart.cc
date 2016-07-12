@@ -88,10 +88,16 @@ void DefoHeart::drawMesh()
     for(TriMesh::FaceIter f_it = meshPtr->faces_sbegin();
         f_it != meshPtr->faces_end(); ++f_it)
     {
+        if (!meshPtr->is_valid_handle(*f_it))
+            continue;
         for(TriMesh::FaceVertexIter fv_it = meshPtr->fv_iter(*f_it);
             fv_it.is_valid();
             ++fv_it)
         {
+            if ((subDivider.getSubDivisionDepth(meshPtr) == 0) && (!subDivider.isVertEven(meshPtr, *fv_it)))
+                continue;
+            if (!meshPtr->is_valid_handle(*fv_it))
+                continue;
             if (!meshPtr->has_vertex_normals())
             {
                 std::cerr << "ERROR: Standard vertex property 'Normals' not available!\n";
@@ -154,6 +160,8 @@ void DefoHeart::drawEvenOddPoints()
     for (TriMesh::VertexIter v_it = meshPtr->vertices_sbegin();
         v_it != meshPtr->vertices_end(); ++v_it)
     {
+        if ((subDivider.getSubDivisionDepth(meshPtr) == 0) && (!subDivider.isVertEven(meshPtr, *v_it)))
+            continue;
         TriMesh::Point p = meshPtr->point(*v_it);
         OpenMesh::VPropHandleT<bool> isEvenVertex;
         if (!meshPtr->get_property_handle(isEvenVertex, "v_prop_even_odd"))
