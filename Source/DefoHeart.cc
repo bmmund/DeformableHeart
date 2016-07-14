@@ -155,11 +155,7 @@ void DefoHeart::drawEvenOddPoints()
         v_it != meshPtr->vertices_end(); ++v_it)
     {
         TriMesh::Point p = meshPtr->point(*v_it);
-        OpenMesh::VPropHandleT<bool> isEvenVertex;
-        if (!meshPtr->get_property_handle(isEvenVertex, "v_prop_even_odd"))
-            break;
-        bool isEven = meshPtr->property(isEvenVertex, *v_it);
-        if (isEven)
+        if (subDivider.isVertEven(meshPtr,*v_it))
             glColor3f(0.0, 1.0, 0.0);
         else
             glColor3f(0.0, 0.0, 1.0);

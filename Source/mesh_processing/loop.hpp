@@ -15,6 +15,8 @@ public:
     void setupMeshProperties(TriMesh * mesh);
     void decompose(TriMesh* mesh);
     int getSubDivisionDepth(TriMesh* mesh);
+    bool isVertEven(TriMesh* mesh, TriMesh::VertexHandle vh);
+
 
 private:
     OpenMesh::VPropHandleT<TriMesh::Point> vertPoint;
@@ -42,5 +44,6 @@ private:
     void findCoarseEvenPositions(TriMesh* mesh);
     void removeOddVertices(TriMesh* mesh);
     void unsplitFaces(TriMesh* mesh);
+    bool doesHalfEdgeContainOddOnly(TriMesh * mesh, const OpenMesh::HalfedgeHandle &heh);
 };
 #endif /* __LOOP__HPP */

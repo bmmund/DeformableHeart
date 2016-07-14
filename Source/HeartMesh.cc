@@ -7,6 +7,10 @@ HeartMesh::HeartMesh(std::string filename)
 {
     mesh.request_vertex_normals();
     mesh.request_face_normals();
+    mesh.request_edge_status();
+    mesh.request_face_status();
+    mesh.request_vertex_status();
+    mesh.request_halfedge_status();
     OpenMesh::IO::Options opt;
     opt += OpenMesh::IO::Options::VertexColor;
     opt += OpenMesh::IO::Options::VertexNormal;
@@ -21,9 +25,9 @@ HeartMesh::HeartMesh(std::string filename)
     else
     {
         std::cout<<"verts:"<<mesh.n_vertices()<<std::endl;
+        std::cout << "faces:" << mesh.n_faces() << std::endl;
     }
     mesh.update_normals();
-
 }
 
 HeartMesh::~HeartMesh()
