@@ -45,6 +45,12 @@ set(DODEDECAHEDRON_MESH_NAME "dodecahedron.obj")
 set(DODEDECAHEDRON_MESH_MTL_NAME "dodecahedron.mtl")
 add_definitions(-DDODEDECAHEDRON_MESH_PATH=\"${DODEDECAHEDRON_MESH_NAME}\")
 
+list(APPEND RESOURCES
+    "${RESOURCE_DIR}/${DODEDECAHEDRON_MESH_NAME}"
+    "${RESOURCE_DIR}/${DODEDECAHEDRON_MESH_MTL_NAME}"
+    "${APP_ICON_LOCATION}"
+)
+
 # Copy resource files
 COPY_RESOURCE(RESOURCE_DIR HEART_MESH_NAME)
 COPY_RESOURCE(RESOURCE_DIR HEART_MESH_MTL_NAME)
@@ -115,10 +121,14 @@ foreach(infileName ${PROJECT_SHADERS})
     COPY_RESOURCE(DIR FILENAME)
 endforeach(infileName)
 
-add_executable (${APP_NAME} ${SRCS} ${HEADERS} ${APP_ICON_LOCATION} ${PROJECT_SHADERS})
+add_executable (${APP_NAME} ${SRCS} ${HEADERS} ${RESOURCES} ${PROJECT_SHADERS})
 target_include_directories(${APP_NAME} PUBLIC ${INCLUDES_DIRS})
 target_link_libraries(${APP_NAME} ${LIBRARIES})
 set_property(TARGET ${APP_NAME} PROPERTY CXX_STANDARD 11)
+# ensure that obj mesh files aren't considered linkable files
+set_source_files_properties(${RESOURCES}
+                            PROPERTIES
+                            HEADER_FILE_ONLY ON)
 # set(CMAKE_AUTOMOC ON)
 if(APPLE)
     set_target_properties(${APP_NAME} PROPERTIES MACOSX_BUNDLE true)
@@ -128,7 +138,8 @@ if(APPLE)
     set_target_properties(${APP_NAME} PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME ${APP_NAME})
     set_target_properties(${APP_NAME} PROPERTIES MACOSX_BUNDLE_ICON_FILE ${APP_ICON_NAME})
 
-    set_source_files_properties(${APP_ICON_LOCATION}
+    set_source_files_properties(${RESOURCES}
                                 PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+
 endif()
 # set_target_properties(${APP_NAME} PROPERTIES AUTOMOC TRUE)
