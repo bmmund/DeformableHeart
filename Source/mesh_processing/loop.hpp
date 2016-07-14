@@ -22,11 +22,13 @@ private:
     OpenMesh::VPropHandleT<TriMesh::Point> vertPoint;
     OpenMesh::EPropHandleT<TriMesh::Point> edgePoint;
     OpenMesh::VPropHandleT<bool> isEvenVertex;
+    OpenMesh::EPropHandleT<TriMesh::Point> detailsProp;
 	OpenMesh::MPropHandleT<int> subdevDepth;    // Refers to how many iterations of subdivision performed
 
     const char* vv_prop_name = "vv_prop";
     const char* ev_prop_name = "ev_prop";
     const char* v_prop_even_odd_name = "v_prop_even_odd";
+    const char* v_prop_details_name = "e_prop_details";
     const char* m_prop_subdev_depth_name = "m_prop_subdev_depth";
 
     void setupMeshProcessingProperties(TriMesh* mesh);
@@ -42,6 +44,7 @@ private:
 
     // decomposition
     void findCoarseEvenPositions(TriMesh* mesh);
+    void findOddDetails(TriMesh* mesh);
     void removeOddVertices(TriMesh* mesh);
     void unsplitFaces(TriMesh* mesh);
     bool doesHalfEdgeContainOddOnly(TriMesh * mesh, const OpenMesh::HalfedgeHandle &heh);

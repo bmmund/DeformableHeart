@@ -51,6 +51,7 @@ void Loop::subdivide(TriMesh *mesh)
     CHECK_MESH(*mesh);
 }
 
+// Called once to setup the mesh properties
 void Loop::setupMeshProperties(TriMesh * mesh)
 {
     // TODO store these in the mesh model object code
@@ -59,8 +60,24 @@ void Loop::setupMeshProperties(TriMesh * mesh)
     if (!mesh->get_property_handle(evenOddCheck, v_prop_even_odd_name))
     {
         mesh->add_property(isEvenVertex, v_prop_even_odd_name);
+        // When we subdivid, all points are now considered even
+        for (TriMesh::VertexIter vertIter = mesh->vertices_begin();
+            vertIter != mesh->vertices_end(); ++vertIter)
+        {
+            mesh->property(isEvenVertex, *vertIter) = true;
+        }
     }
-
+    OpenMesh::EPropHandleT<TriMesh::Point> detailsCheck;
+    if (!mesh->get_property_handle(detailsCheck, v_prop_details_name))
+    {
+        mesh->add_property(detailsProp, v_prop_details_name);
+        // When we subdivid, all points are now considered even
+        for (TriMesh::EdgeIter edgeIter = mesh->edges_begin();
+            edgeIter != mesh->edges_end(); ++edgeIter)
+        {
+            mesh->property(detailsProp, *edgeIter) = TriMesh::Point(0.0f);
+        }
+    }
     // Test to see if there is no subdev property, if there isn't initialize it
     OpenMesh::MPropHandleT<int> subdevDepthCheck;
     if (!mesh->get_property_handle(subdevDepthCheck, m_prop_subdev_depth_name))
@@ -74,31 +91,23 @@ void Loop::setupMeshProperties(TriMesh * mesh)
         std::cout << "Mesh was at subdivision level " <<
             mesh->property(subdevDepth) << " when called.\n";
     }
-    // When we subdivid, all points are now considered even
-    for (TriMesh::VertexIter vertIter = mesh->vertices_begin();
-        vertIter != mesh->vertices_end(); ++vertIter)
-    {
-        mesh->property(isEvenVertex, *vertIter) = true;
-    }
 }
 
 void Loop::decompose(TriMesh * mesh)
 {
     // setup mesh with required attributes
     setupMeshProcessingProperties(mesh);
-    // initialize all vertex positions to current position
-    for (TriMesh::VertexIter vertIter = mesh->vertices_begin();
-        vertIter != mesh->vertices_end();
-        ++vertIter)
-    {
-        mesh->property(vertPoint, *vertIter) = mesh->point(*vertIter);
-    }
 
+    // unsplit the face, reducing tri's to original coarse mesh.
+    // still must deal with edge-vertices
     unsplitFaces(mesh);
 
     // All even verts have no coarse locations
     // Find vertex-vertex (coarse even) positions
     findCoarseEvenPositions(mesh);
+
+    // Find Details
+    findOddDetails(mesh);
 
     //remove the edge-vertex (odd) vertices
     removeOddVertices(mesh);
@@ -139,6 +148,13 @@ void Loop::setupMeshProcessingProperties(TriMesh *mesh)
 {
     mesh->add_property(vertPoint, vv_prop_name);
     mesh->add_property(edgePoint, ev_prop_name);
+    // initialize all vertex positions to current position
+    for (TriMesh::VertexIter vertIter = mesh->vertices_begin();
+        vertIter != mesh->vertices_end();
+        ++vertIter)
+    {
+        mesh->property(vertPoint, *vertIter) = mesh->point(*vertIter);
+    }
 }
 
 void Loop::teardownMeshProcessingProperties(TriMesh *mesh)
@@ -154,6 +170,7 @@ void Loop::setVertexVertexPositions(TriMesh* mesh)
     for(vertIter = mesh->vertices_begin(); vertIter != mesh->vertices_end(); ++vertIter)
     {
         TriMesh::Point pos(0.0, 0.0, 0.0);
+        TriMesh::Point details(0.0, 0.0, 0.0);
         // Two cases: boundary or non-boundary vertex
         if(mesh->is_boundary(*vertIter))
         {
@@ -176,9 +193,15 @@ void Loop::setVertexVertexPositions(TriMesh* mesh)
             pos = alpha * pos;
             // add vertex contribution
             pos += (1 - (valence*alpha) ) * mesh->point(*vertIter);
+            for (TriMesh::VertexEdgeIter ve_it = mesh->ve_iter(*vertIter);
+                ve_it.is_valid(); ++ve_it)
+            {
+                details += mesh->property(detailsProp, *ve_it);
+            }
+            details = ((8.0f*alpha) / 5.0f) * details;
         }
         // add calculated value to vertex-vertex
-        mesh->property(vertPoint, *vertIter) = pos;
+        mesh->property(vertPoint, *vertIter) = pos + details;
         mesh->property( isEvenVertex, *vertIter ) = true;
     }
 }
@@ -223,6 +246,8 @@ void Loop::setEdgeVertexPositions(TriMesh* mesh)
             pos = (3.0/8.0)*v1v2 + (1.0/8.0)*v3v4;
         }
         mesh->property(edgePoint, *edgeIter) = pos;
+        // add details
+        mesh->property(edgePoint, *edgeIter) += mesh->property(detailsProp, *edgeIter);
     }
 }
 
@@ -496,6 +521,72 @@ void Loop::findCoarseEvenPositions(TriMesh * mesh)
     }
 }
 
+void Loop::findOddDetails(TriMesh * mesh)
+{
+    for (TriMesh::VertexIter vertIter = mesh->vertices_begin(); vertIter != mesh->vertices_end(); ++vertIter)
+    {
+        TriMesh::Point pos(0.0, 0.0, 0.0);
+        TriMesh::Point fi_prime(0.0, 0.0, 0.0);
+
+        // only do for odd verts
+        if (mesh->property(isEvenVertex, *vertIter))
+        {
+            continue;
+        }
+
+
+        // Two cases: boundary or non-boundary vertex
+        if (mesh->is_boundary(*vertIter))
+        {
+            //TODO: support boundary verts
+            std::cout << "boundary verts!\n";
+            return;
+        }
+        else
+        {
+            pos = mesh->point(*vertIter);
+            TriMesh::Point v1v2(0.0, 0.0, 0.0);
+            TriMesh::Point v3v4(0.0, 0.0, 0.0);
+            TriMesh::VertexHandle vertex;
+            // E` = (3/8)* [V1 + V2] + (1/8)*[V3 + V4]
+            // C0
+            int count = 0;
+            for (TriMesh::VertexVertexIter vv_it = mesh->vv_iter(*vertIter);
+                vv_it.is_valid(); ++vv_it)
+            {
+                //v1v2 += mesh->point(*vv_it);
+                v1v2 += mesh->property(vertPoint, *vv_it);
+                assert(mesh->property(isEvenVertex, *vv_it));
+                count++;
+            }
+            assert(count == 2);
+
+            count = 0;
+            for (TriMesh::VertexOHalfedgeIter voh_it = mesh->voh_iter(*vertIter);
+                voh_it.is_valid(); ++voh_it)
+            {
+                vertex = mesh->to_vertex_handle(
+                        mesh->next_halfedge_handle( (mesh->next_halfedge_handle(*voh_it)) )
+                    );
+                assert(vertex != mesh->to_vertex_handle(mesh->halfedge_handle(*vertIter)));
+                assert(vertex != mesh->from_vertex_handle(mesh->prev_halfedge_handle(mesh->halfedge_handle(*vertIter))));
+                assert(mesh->property(isEvenVertex, vertex));
+                v3v4 += mesh->property(vertPoint, vertex);
+                count++;
+            }
+            assert(count == 2);
+            // di = fi - fi'
+            TriMesh::Point fi, fi_hat;
+            fi = mesh->point(*vertIter);
+            fi_hat = (3.0f / 8.0f)*v1v2 + (1.0f / 8.0f)*v3v4;
+            pos = fi - fi_hat;
+        }
+        // add calculated value to vertex-vertex
+        mesh->property(vertPoint, *vertIter) = pos;
+
+    }
+}
+
 void Loop::removeOddVertices(TriMesh * mesh)
 {
     for (TriMesh::VertexIter vertIter = mesh->vertices_begin(); vertIter != mesh->vertices_end(); ++vertIter)
@@ -517,10 +608,18 @@ void Loop::removeOddVertices(TriMesh * mesh)
         }
         else
         {
+            // grab details for storing on resulting edge
+            pos = mesh->property(vertPoint, *vertIter);
             // remove the vertex and fix the faces
             TriMesh::HalfedgeHandle heh(mesh->halfedge_handle(*vertIter));
+            TriMesh::VertexHandle v0, v1;
+            v0 = mesh->to_vertex_handle(heh);
+            v1 = mesh->from_vertex_handle(mesh->prev_halfedge_handle(heh));
             assert((mesh->is_collapse_ok(heh)) == true);
             mesh->collapse(heh);
+            heh = mesh->find_halfedge(v0, v1);
+            assert(mesh->is_valid_handle(heh));
+            mesh->property(detailsProp, mesh->edge_handle(heh)) = pos;
         }
     }
     mesh->garbage_collection();
