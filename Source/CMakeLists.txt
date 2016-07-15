@@ -68,17 +68,20 @@ add_subdirectory(utilities)
 add_subdirectory(interaction)
 add_subdirectory(render_core)
 add_subdirectory(mesh_processing)
-
+set(PROJECT_LIBS "")
+list(APPEND PROJECT_LIBS
+    "${RENDER_CORE_LIB}"
+    "${INTERACTION_LIB}"
+    "${MESH_PROCESSING_LIB}"
+    "${UTILITIES_LIB}"
+)
 #########################################################
 # Libs
 #########################################################
 list(APPEND LIBRARIES
     "${GLFW_LIBRARIES}"
     "${OPENGL_LIBRARIES}"
-    "${RENDER_CORE_LIB}"
-    "${INTERACTION_LIB}"
-    "${MESH_PROCESSING_LIB}"
-    "${UTILITIES_LIB}"
+    "${PROJECT_LIBS}"
     "${OPENMESH_LIBRARIES}"
 )
 
@@ -143,3 +146,9 @@ if(APPLE)
 
 endif()
 # set_target_properties(${APP_NAME} PROPERTIES AUTOMOC TRUE)
+#-------------------------------------------------------------------------------
+# Unit tests
+#-------------------------------------------------------------------------------
+if(BUILD_UNIT_TESTS)
+    add_subdirectory(tests)
+endif()

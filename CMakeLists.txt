@@ -26,6 +26,7 @@ set(DEPENDANCY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Dependancies")
 # Locate Dependancies
 #-------------------------------------------------------------------------------
 option(USE_LOCAL_DEPENDANCIES "Use locally installed libraries when possible" OFF)
+option(BUILD_UNIT_TESTS "Build google test unit test" OFF)
 #########################################################
 # FIND GLFW
 #########################################################
@@ -97,6 +98,29 @@ else()
     add_subdirectory(${DEPENDANCY_DIR}/OpenMesh)
 endif()
 
+#########################################################
+# FIND google test
+#########################################################
+# GTEST_FOUND - Found the Google Testing framework
+# GTEST_INCLUDE_DIRS - Include directories
+# GTEST_BOTH_LIBRARIES - Both libgtest & libgtest-main
+# GTEST_LIBRARIES - libgtest
+# GTEST_MAIN_LIBRARIES - libgtest-main
+if(BUILD_UNIT_TESTS)
+    if(USE_LOCAL_DEPENDANCIES)
+        find_package(GTest REQUIRED)
+    else()
+        add_subdirectory(${DEPENDANCY_DIR}/gtest)
+        set(GTEST_LIBRARIES gtest)
+        set(GTEST_MAIN_LIBRARIES gtest_main)
+        list(APPEND GTEST_BOTH_LIBRARIES
+            "${GTEST_LIBRARIES}"
+            "${GTEST_MAIN_LIBRARIES}"
+        )
+        set(GTEST_INCLUDE_DIRS ${DEPENDANCY_DIR}/gtest/include)
+        set(GTEST_FOUND true)
+    endif()
+endif()
 #########################################################
 # Notify of missing dependancies
 #########################################################
