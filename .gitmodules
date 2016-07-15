@@ -7,3 +7,6 @@
 [submodule "Dependancies/OpenMesh"]
 	path = Dependancies/OpenMesh
 	url = https://www.graphics.rwth-aachen.de:9000/OpenMesh/OpenMesh.git
+[submodule "Dependancies/gtest"]
+	path = Dependancies/gtest
+	url = https://github.com/google/googletest.git
