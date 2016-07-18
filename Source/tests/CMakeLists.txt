@@ -12,13 +12,13 @@ list(APPEND TEST_LIBS
 list(APPEND TEST_INCLUDES
     "${GTEST_INCLUDE_DIRS}"
 )
-message(STATUS "PROJECT_LIBS:${PROJECT_LIBS}")
-message(STATUS "GTEST_BOTH_LIBRARIES:${GTEST_BOTH_LIBRARIES}")
+
 #-------------------------------------------------------------------------------
 # Unit tests
 #-------------------------------------------------------------------------------
 list(APPEND TEST_SRCS
     render_core_test.cc
+    utilities_test.cc
 )
 
 add_executable(${TEST_COLLECTION_NAME} ${TEST_SRCS})

@@ -1,6 +1,10 @@
 #include "utilities.hpp"
 #include "polyroots.hpp"
 #include <algorithm>
+#include <fstream>
+#include <sstream>
+#include <iostream>
+
 bool Utilities::intersect(glm::vec4 &ray_dir, glm::vec4 &ray_origin, glm::vec4 &center, float &t_out)
 {
     static float const radius2 = 0.0005f;
@@ -42,4 +46,24 @@ float Utilities::clamp(float value, float lowerBound, float upperBound)
         upperBound = temp;
     }
     return value < lowerBound ? lowerBound : (value > upperBound ? upperBound : value);
+}
+
+std::string Utilities::readFileToString(const char * path)
+{
+    std::string output("");
+    std::ifstream file;
+    file.exceptions(std::ifstream::badbit);
+    try
+    {
+        file.open(path);
+        std::stringstream fileStringStream;
+        fileStringStream << file.rdbuf();
+        file.close();
+        output = fileStringStream.str();
+    }
+    catch (std::ifstream::failure e)
+    {
+        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+    }
+    return output;
 }

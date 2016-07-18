@@ -10,6 +10,7 @@ set(RENDER_CORE_LIB ${LIB_NAME} PARENT_SCOPE)
 list(APPEND LIBRARIES
     "${GLFW_LIBRARIES}"
     "${OPENGL_LIBRARIES}"
+    "${UTILITIES_LIB}"
 )
 
 #########################################################
