@@ -29,17 +29,19 @@ private:
     bool useLighting;
     bool drawWireFrame;
 
-    void setDefaultMaterial(void);
-    void setHeartMaterial();
-    void setDefaultLight(void);
-    void initializeGL();
-    void updateGeometries();
+#ifdef USE_OPENGL_LEGACY
+    void updateGeometriesLegacy();
     void drawMesh();
     void drawMeshNormals();
     void drawMeshPoints();
     void drawMeshPoint(int index);
     void drawEvenOddPoints();
     void drawModelGnomenPoints();
+    void setDefaultMaterial(void);
+    void setHeartMaterial();
+    void setDefaultLight(void);
+#endif
+    void initializeGL();
     void resetModelView();
     void resize();
     void keyCallbackImp(GLFWwindow* window, int key, int scancode, int action, int mods);

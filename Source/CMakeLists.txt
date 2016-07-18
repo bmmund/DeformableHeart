@@ -68,6 +68,7 @@ add_subdirectory(utilities)
 add_subdirectory(interaction)
 add_subdirectory(render_core)
 add_subdirectory(mesh_processing)
+
 set(PROJECT_LIBS "")
 list(APPEND PROJECT_LIBS
     "${RENDER_CORE_LIB}"
@@ -83,6 +84,7 @@ list(APPEND LIBRARIES
     "${OPENGL_LIBRARIES}"
     "${PROJECT_LIBS}"
     "${OPENMESH_LIBRARIES}"
+    "${GLAD_LIB}"
 )
 
 #########################################################

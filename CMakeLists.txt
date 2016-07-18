@@ -55,6 +55,12 @@ endif()
 find_package(OpenGL REQUIRED)
 
 #########################################################
+# FIND GLAD
+#########################################################
+# GLAD_LIB - glad library
+add_subdirectory(${DEPENDANCY_DIR}/glad)
+
+#########################################################
 # FIND GLM
 #########################################################
 # GLM_INCLUDE_DIRS  - where to find glm/glm.hpp

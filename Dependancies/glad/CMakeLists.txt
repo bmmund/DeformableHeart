@@ -1,40 +1,27 @@
 # Declare the library name
-set(LIB_NAME render-core)
-set(RENDER_CORE_LIB ${LIB_NAME} PARENT_SCOPE)
+set(LIB_NAME glad)
+set(GLAD_LIB ${LIB_NAME} PARENT_SCOPE)
 #-------------------------------------------------------------------------------
 # Dependancies
 #-------------------------------------------------------------------------------
 #########################################################
-# Libs
-#########################################################
-list(APPEND LIBRARIES
-    "${GLFW_LIBRARIES}"
-    "${OPENGL_LIBRARIES}"
-    "${UTILITIES_LIB}"
-    "${GLAD_LIB}"
-)
-
-#########################################################
 # Headers
 #########################################################
 list(APPEND INCLUDES_DIRS
-    "${GLFW_INCLUDE_DIR}"
-    "${OPENGL_INCLUDE_DIR}"
-    "${GLM_INCLUDE_DIRS}"
-    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
 #-------------------------------------------------------------------------------
 # Render-App Engine
 #-------------------------------------------------------------------------------
 list(APPEND SRCS
-    app.cc
-    shader.cc
+    src/glad.c
 )
 
 list(APPEND HEADERS
-    app.hpp
-    shader.hpp
+    include/glad/glad.h
+    include/KHR/khrplatform.h
+
 )
 
 add_library (${LIB_NAME} ${SRCS} ${HEADERS})

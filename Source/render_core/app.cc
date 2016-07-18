@@ -1,5 +1,9 @@
 #include "app.hpp"
 
+#ifndef USE_OPENGL_LEGACY
+    #include "glad/glad.h"
+#endif // !USE_OPENGL_LEGACY
+
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <stdexcept>
@@ -64,9 +68,15 @@ App::App( int _width, int _height, std::string _title ):
         throw std::runtime_error("Couldn't init GLFW");
     }
 
-    // Setup for opengl 1.x
+    // Setup for opengl
     glfwDefaultWindowHints();
-    // create the window
+
+    #ifndef USE_OPENGL_LEGACY
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    #endif
+        // create the window
     window = glfwCreateWindow( width, height, title.c_str(), nullptr, nullptr);
     if (!window)
     {
@@ -75,6 +85,12 @@ App::App( int _width, int _height, std::string _title ):
     }
     glfwGetFramebufferSize(window, &pixelsX, &pixelsY);    // update width/height
     glfwMakeContextCurrent(window);
+
+#ifndef USE_OPENGL_LEGACY
+    gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+#endif
+    printf("OpenGL %d.%d\n", GLVersion.major, GLVersion.minor);
+
 
     // Setup GLFW callbacks
     glfwSetWindowSizeCallback(window, App::windowSizeCallback);

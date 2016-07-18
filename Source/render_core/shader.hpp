@@ -15,6 +15,8 @@ public:
     // Use the program
     void Use();
 
+private:
+
 };
 
 #endif /* __SHADER__HPP */
