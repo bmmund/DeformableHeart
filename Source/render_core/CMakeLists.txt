@@ -27,10 +27,12 @@ list(APPEND INCLUDES_DIRS
 #-------------------------------------------------------------------------------
 list(APPEND SRCS
     app.cc
+    shader.cc
 )
 
 list(APPEND HEADERS
     app.hpp
+    shader.hpp
 )
 
 add_library (${LIB_NAME} ${SRCS} ${HEADERS})
