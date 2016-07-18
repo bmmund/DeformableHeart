@@ -4,7 +4,7 @@
 #include <sstream>
 #include <iostream>
 
-Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
+Shader::Shader(const char* vertexPath, const char* fragmentPath)
 {
 
 }
