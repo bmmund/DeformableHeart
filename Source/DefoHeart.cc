@@ -20,7 +20,7 @@ std::string const application_name = "DefoHeart";
 DefoHeart::DefoHeart()
     :   App(windowWidth, windowHeight, application_name),
         #ifndef USE_OPENGL_LEGACY
-            shader("vertex.glsl","fragement.glsl"),
+            shader("vertex.glsl","fragment.glsl"),
         #endif
         mesh(DODEDECAHEDRON_MESH_PATH),
         subDivider(),
