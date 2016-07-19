@@ -4,6 +4,12 @@
 #include <string>
 #include <OpenMesh/Core/IO/MeshIO.hh>   // must be included before a mesh type
 #include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
+
+#ifndef USE_OPENGL_LEGACY
+    #include "glad/glad.h"
+    #include <GLFW/glfw3.h>
+#endif // !USE_OPENGL_LEGACY
+
 #include <vector>
 
 typedef OpenMesh::TriMesh_ArrayKernelT<>  TriMesh;
@@ -16,6 +22,11 @@ public:
     TriMesh* getTriMesh(){return &mesh;}
     void updateFaceIndeces();
 private:
+    #ifndef USE_OPENGL_LEGACY
+        GLuint VAO, VBO, EBO;
+        void createBuffers();
+        void updateBuffers();
+    #endif
     std::string fname;
     TriMesh mesh;
     std::vector<int> faceIndeces;

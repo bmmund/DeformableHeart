@@ -28,6 +28,12 @@ HeartMesh::HeartMesh(std::string filename)
         std::cout << "faces:" << mesh.n_faces() << std::endl;
     }
     mesh.update_normals();
+
+    #ifndef USE_OPENGL_LEGACY
+        createBuffers();
+    #endif
+
+        updateFaceIndeces();
 }
 
 HeartMesh::~HeartMesh()
@@ -50,5 +56,45 @@ void HeartMesh::updateFaceIndeces()
         faceIndeces.push_back((*(++fv_it)).idx());
         faceIndeces.push_back((*(++fv_it)).idx());
     }
-
+    #ifndef USE_OPENGL_LEGACY
+        updateBuffers();
+    #endif
 }
+
+#ifndef USE_OPENGL_LEGACY
+void HeartMesh::createBuffers()
+{
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+}
+
+void HeartMesh::updateBuffers()
+{
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    int points_size = mesh.n_vertices() * sizeof(TriMesh::Point);
+    int normals_size = mesh.n_vertices() * sizeof(TriMesh::Normal);
+    int vertext_size = points_size + normals_size;
+
+    glBufferData(GL_ARRAY_BUFFER, vertext_size, NULL, GL_STATIC_DRAW);
+
+    glBufferSubData(GL_ARRAY_BUFFER, 0, points_size, mesh.points());
+    glBufferSubData(GL_ARRAY_BUFFER, points_size, normals_size, mesh.vertex_normals());
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, faceIndeces.size() * sizeof(GLuint),
+                 &faceIndeces[0], GL_STATIC_DRAW);
+
+    // Vertex Positions
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+    // Vertex Normals
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)points_size);
+
+    glBindVertexArray(0);
+}
+
+#endif
