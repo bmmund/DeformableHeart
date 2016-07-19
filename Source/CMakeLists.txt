@@ -145,7 +145,8 @@ if(APPLE)
 
     set_source_files_properties(${RESOURCES}
                                 PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-
+    set_source_files_properties(${PROJECT_SHADERS}
+                                PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 endif()
 # set_target_properties(${APP_NAME} PROPERTIES AUTOMOC TRUE)
 #-------------------------------------------------------------------------------
