@@ -21,6 +21,9 @@ public:
     ~HeartMesh();
     TriMesh* getTriMesh(){return &mesh;}
     void updateFaceIndeces();
+    #ifndef USE_OPENGL_LEGACY
+        void Draw();
+    #endif
 private:
     #ifndef USE_OPENGL_LEGACY
         GLuint VAO, VBO, EBO;

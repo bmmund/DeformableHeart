@@ -7,6 +7,9 @@
 #include <glm/glm.hpp>
 #include "trackball.hpp"
 #include "rayselector.hpp"
+#ifndef USE_OPENGL_LEGACY
+    #include "shader.hpp"
+#endif
 
 class DefoHeart : public App
 {
@@ -15,6 +18,12 @@ public:
     ~DefoHeart();
     void loop();
 private:
+    #ifndef USE_OPENGL_LEGACY
+        Shader shader;
+        GLuint modelLoc;
+        GLuint viewLoc;
+        GLuint projLoc;
+    #endif
     HeartMesh mesh;
     Loop subDivider;
     Trackball trackball;

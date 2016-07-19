@@ -8,6 +8,7 @@
 #include <string>
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "deformation.hpp"
 
 using namespace std;
@@ -18,6 +19,9 @@ std::string const application_name = "DefoHeart";
 
 DefoHeart::DefoHeart()
     :   App(windowWidth, windowHeight, application_name),
+        #ifndef USE_OPENGL_LEGACY
+            shader("vertex.glsl","fragement.glsl"),
+        #endif
         mesh(DODEDECAHEDRON_MESH_PATH),
         subDivider(),
         trackball(windowWidth, windowHeight),
@@ -44,6 +48,11 @@ void DefoHeart::loop()
     #if defined(USE_OPENGL_LEGACY)
         updateGeometriesLegacy();
     #else
+        shader.Use();
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelM));
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewM));
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projM));
+        mesh.Draw();
     #endif
 }
 
@@ -263,6 +272,9 @@ void DefoHeart::initializeGL()
 
 
 #else
+    modelLoc = glGetUniformLocation(shader.Program, "model");
+    viewLoc = glGetUniformLocation(shader.Program, "view");
+    projLoc = glGetUniformLocation(shader.Program, "projection");
 #endif
 
     resetModelView();

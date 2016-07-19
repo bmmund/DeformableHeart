@@ -62,6 +62,13 @@ void HeartMesh::updateFaceIndeces()
 }
 
 #ifndef USE_OPENGL_LEGACY
+void HeartMesh::Draw()
+{
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, faceIndeces.size(), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+}
+
 void HeartMesh::createBuffers()
 {
     glGenVertexArrays(1, &VAO);
