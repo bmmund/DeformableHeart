@@ -33,3 +33,22 @@ HeartMesh::HeartMesh(std::string filename)
 HeartMesh::~HeartMesh()
 {
 }
+
+void HeartMesh::updateFaceIndeces()
+{
+    TriMesh::ConstFaceIter        f_it(mesh.faces_sbegin()),
+    f_end(mesh.faces_end());
+    TriMesh::ConstFaceVertexIter  fv_it;
+
+    faceIndeces.clear();
+    faceIndeces.reserve(mesh.n_faces()*3);
+
+    for (; f_it!=f_end; ++f_it)
+    {
+        fv_it=mesh.cfv_iter(*f_it);
+        faceIndeces.push_back((*fv_it).idx());
+        faceIndeces.push_back((*(++fv_it)).idx());
+        faceIndeces.push_back((*(++fv_it)).idx());
+    }
+
+}

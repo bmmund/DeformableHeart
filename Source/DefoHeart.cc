@@ -293,12 +293,18 @@ void DefoHeart::keyCallbackImp(GLFWwindow* window, int key, int scancode, int ac
     else if(key == GLFW_KEY_S && action == GLFW_PRESS)
     {
         if(subDivider.getSubDivisionDepth(mesh.getTriMesh())<1)
+        {
             subDivider.subdivide(mesh.getTriMesh());
+            mesh.updateFaceIndeces();
+        }
     }
     else if (key == GLFW_KEY_D && action == GLFW_PRESS)
     {
         if (subDivider.getSubDivisionDepth(mesh.getTriMesh())>=1)
+        {
             subDivider.decompose(mesh.getTriMesh());
+            mesh.updateFaceIndeces();
+        }
     }
     else if(key == GLFW_KEY_W && action == GLFW_PRESS)
     {
