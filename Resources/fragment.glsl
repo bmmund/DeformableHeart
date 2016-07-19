@@ -3,13 +3,13 @@
 out vec4 colour;
 
 // Needed for shading calculations in fragement shader
-in VS_IN
+in VS_OUT
 {
     vec3 N;
     vec3 L;
     vec3 V;
     vec3 C;
-} vs_in;
+} fs_in;
 
 void main(void)
 {
