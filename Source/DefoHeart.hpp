@@ -19,10 +19,12 @@ public:
     void loop();
 private:
     #ifndef USE_OPENGL_LEGACY
-        Shader shader;
+        Shader shaderPhong;
+		Shader shaderSolid;
         GLuint modelLoc;
         GLuint viewLoc;
         GLuint projLoc;
+		GLuint colourLoc;
     #endif
     HeartMesh mesh;
     Loop subDivider;
@@ -57,5 +59,6 @@ private:
     void mousePositionCallbackImp(GLFWwindow* window, double xpos, double ypos);
     void mouseClickCallbackImp(GLFWwindow* window, int button, int action, int mods);
 	void scrollCallbackImp(GLFWwindow* window, double xoffset, double yoffset);
+	void getAtterLocations(Shader &s);
 };
 #endif /* __DEFO_HEART__HPP */

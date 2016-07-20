@@ -18,9 +18,10 @@ int const windowHeight = 480;
 std::string const application_name = "DefoHeart";
 
 DefoHeart::DefoHeart()
-    :   App(windowWidth, windowHeight, application_name),
-        #ifndef USE_OPENGL_LEGACY
-            shader("vertex.glsl","fragment.glsl"),
+	: App(windowWidth, windowHeight, application_name),
+#ifndef USE_OPENGL_LEGACY
+	shaderPhong("vertex.glsl", "fragment.glsl"),
+	shaderSolid("vertex.glsl", "fragSolid.glsl"),
         #endif
         mesh(DODEDECAHEDRON_MESH_PATH),
         subDivider(),
@@ -48,11 +49,27 @@ void DefoHeart::loop()
     #if defined(USE_OPENGL_LEGACY)
         updateGeometriesLegacy();
     #else
-        shader.Use();
+        shaderPhong.Use();
+		getAtterLocations(shaderPhong);
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelM));
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewM));
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projM));
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         mesh.Draw();
+		glDisable(GL_POLYGON_OFFSET_FILL);
+
+		if (drawWireFrame)
+		{
+			shaderSolid.Use();
+			getAtterLocations(shaderSolid);
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelM));
+			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewM));
+			glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projM));
+			glm::vec3 colour(0.0f, 0.0f, 0.0f);
+			glUniform3fv(colourLoc, 1, glm::value_ptr(colour));
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			mesh.Draw();
+		}
     #endif
 }
 
@@ -249,9 +266,9 @@ void DefoHeart::loop()
 
 void DefoHeart::initializeGL()
 {
+	glEnable(GL_DEPTH_TEST);
 #ifdef USE_OPENGL_LEGACY
     // OpenGL state
-    glEnable(GL_DEPTH_TEST);
     glShadeModel(GL_SMOOTH);
     glEnable(GL_LIGHTING);
     // Material
@@ -272,9 +289,7 @@ void DefoHeart::initializeGL()
 
 
 #else
-    modelLoc = glGetUniformLocation(shader.Program, "model");
-    viewLoc = glGetUniformLocation(shader.Program, "view");
-    projLoc = glGetUniformLocation(shader.Program, "projection");
+	getAtterLocations(shaderPhong);
 #endif
 
     resetModelView();
@@ -358,10 +373,12 @@ void DefoHeart::keyCallbackImp(GLFWwindow* window, int key, int scancode, int ac
             if(key == GLFW_KEY_DOWN)
             {
                 Deformation::pushVertsIn(mesh.getTriMesh(), selectedIdx, 0.01f);
+				mesh.updateFaceIndeces();
             }
             else
             {
                 Deformation::pushVertsOut(mesh.getTriMesh(), selectedIdx, 0.01f);
+				mesh.updateFaceIndeces();
             }
         }
     }
@@ -427,4 +444,12 @@ void DefoHeart::scrollCallbackImp(GLFWwindow* window, double xoffset, double yof
         cameraOrigin = cameraOrigin + (zoom_factor * dir);
         viewM = glm::lookAt(cameraOrigin, glm::vec3(0,0,0), glm::vec3(0,1,0));
 	}
+}
+
+void DefoHeart::getAtterLocations(Shader & s)
+{
+	modelLoc = glGetUniformLocation(s.Program, "model");
+	viewLoc = glGetUniformLocation(s.Program, "view");
+	projLoc = glGetUniformLocation(s.Program, "projection");
+	colourLoc = glGetUniformLocation(s.Program, "colour");
 }
