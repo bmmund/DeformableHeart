@@ -21,7 +21,7 @@ DefoHeart::DefoHeart()
 	: App(windowWidth, windowHeight, application_name),
 #ifndef USE_OPENGL_LEGACY
 	shaderPhong("vertex.glsl", "fragment.glsl"),
-	shaderSolid("vertex.glsl", "fragSolid.glsl"),
+	shaderSolid("vertexSolid.glsl", "fragSolid.glsl"),
         #endif
         mesh(DODEDECAHEDRON_MESH_PATH),
         subDivider(),

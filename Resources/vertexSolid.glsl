@@ -2,7 +2,6 @@
 
 layout (location=0) in vec3 position;
 layout (location=1) in vec3 normal;
-layout (location=2) in vec3 colour;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -17,7 +16,7 @@ out VS_OUT
     vec3 C;
 } vs_out;
 
-//uniform vec3 colour = vec3(0.4f, 0.0f, 0.0f);
+uniform vec3 colour = vec3(0.4f, 0.0f, 0.0f);
 uniform vec3 light_pos = vec3(100.0, 100.0, 100.0);
 
 void main(void)
@@ -38,7 +37,7 @@ void main(void)
     vs_out.V = -P.xyz;
 
     // Store the colour attribute
-    vs_out.C = colour/255.0f;
+    vs_out.C = colour;
 
     // Calculate the clip-space position of each vertex
     gl_Position = projection * P;

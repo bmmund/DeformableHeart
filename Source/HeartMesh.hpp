@@ -33,5 +33,9 @@ private:
     std::string fname;
     TriMesh mesh;
     std::vector<int> faceIndeces;
+    std::vector<TriMesh::Point> points;
+    std::vector<TriMesh::Normal> normals;
+    std::vector<TriMesh::Color> colours;
+    void initFaceColours(TriMesh::Color c);
 };
 #endif /* __HEART_MESH__HPP */
