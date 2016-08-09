@@ -449,6 +449,9 @@ void Loop::splitCorner(TriMesh* mesh, TriMesh::HalfedgeHandle* he)
     // whenever topology is changed.
     mesh->adjust_outgoing_halfedge(ev1h);
     mesh->adjust_outgoing_halfedge(ev2h);
+
+    // clone f1 color into f2
+    mesh->set_color(f2h, mesh->color(f1h));
 }
 
 float Loop::getWeight(int valence)

@@ -1,5 +1,6 @@
 #include "HeartMesh.hpp"
 #include <iostream>
+#include <random>
 
 HeartMesh::HeartMesh(std::string filename)
     : fname(filename),
@@ -30,6 +31,8 @@ HeartMesh::HeartMesh(std::string filename)
     }
     mesh.update_normals();
     initFaceColours(TriMesh::Color(102, 0, 0));
+    initializeACM();
+
     #ifndef USE_OPENGL_LEGACY
         createBuffers();
     #endif
@@ -53,9 +56,9 @@ void HeartMesh::updateFaceIndeces()
     colours.clear();
     faceIndeces.clear();
 
-    points.reserve(mesh.n_vertices()*3);
-    normals.reserve(mesh.n_vertices()*3);
-    colours.reserve(mesh.n_vertices()*3);
+    points.reserve(mesh.n_faces()*3);
+    normals.reserve(mesh.n_faces()*3);
+    colours.reserve(mesh.n_faces()*3);
     faceIndeces.reserve(mesh.n_faces()*3);
 
     for (; f_it!=f_end; ++f_it)
@@ -137,4 +140,65 @@ void HeartMesh::initFaceColours(TriMesh::Color c)
         mesh.set_color(*f_it, c);
     }
 }
+
+void HeartMesh::initializeACM()
+{
+    std::mt19937 rng(std::mt19937::default_seed);
+    std::uniform_int_distribution<int> gen(0, 255);
+
+    pairedTrisEH.clear();
+    pairedTrisFH.clear();
+    pairedTrisFH.resize(mesh.n_faces(),-1);
+
+    TriMesh::ConstEdgeIter edgeIter;
+    for(edgeIter = mesh.edges_begin();
+        edgeIter != mesh.edges_end();
+        edgeIter++)
+    {
+        TriMesh::HalfedgeHandle heh1(mesh.halfedge_handle(*edgeIter, 0));
+        TriMesh::HalfedgeHandle heh2(mesh.halfedge_handle(*edgeIter, 1));
+        TriMesh::FaceHandle f1(mesh.face_handle(heh1));
+        TriMesh::FaceHandle f2(mesh.face_handle(heh2));
+
+        // if either are already paired, skip this set
+        if( ( pairedTrisFH[f1.idx()] != -1 )
+           || (pairedTrisFH[f2.idx()] != -1)
+           )
+        {
+            continue;
+        }
+        else
+        {
+            // Pair these triangles and add edge to list
+            pairedTrisFH[f1.idx()] = f2.idx();
+            pairedTrisFH[f2.idx()] = f1.idx();
+            // Pair these triangles and add edge to list
+            pairedTrisEH.push_back(*edgeIter);
+            // set the face colour
+            int r = gen(rng);
+            int g = gen(rng);
+            int b = gen(rng);
+            TriMesh::Color c(r,g,b);
+            mesh.set_color(f1, c);
+            mesh.set_color(f2, c);
+        }
+    }
+    for(int i = 0; i < pairedTrisFH.size(); i++)
+    {
+        if(pairedTrisFH[i] == -1)
+        {
+            ;
+            // Pair these triangles and add edge to list
+            pairedTrisEH.push_back(mesh.edge_handle(mesh.halfedge_handle(mesh.face_handle(i))));
+            // set the face colour
+            int r = gen(rng);
+            int g = gen(rng);
+            int b = gen(rng);
+            TriMesh::Color c(r,g,b);
+            mesh.set_color(mesh.face_handle(i), c);
+        }
+    }
+}
+
+
 #endif

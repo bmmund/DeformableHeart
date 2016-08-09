@@ -36,6 +36,10 @@ private:
     std::vector<TriMesh::Point> points;
     std::vector<TriMesh::Normal> normals;
     std::vector<TriMesh::Color> colours;
+    std::vector<TriMesh::EdgeHandle> pairedTrisEH;
+    std::vector<int> pairedTrisFH;
+
     void initFaceColours(TriMesh::Color c);
+    void initializeACM();
 };
 #endif /* __HEART_MESH__HPP */
