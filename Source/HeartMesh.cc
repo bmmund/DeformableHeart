@@ -61,22 +61,41 @@ void HeartMesh::updateFaceIndeces()
     colours.reserve(mesh.n_faces()*3);
     faceIndeces.reserve(mesh.n_faces()*3);
 
-    for (; f_it!=f_end; ++f_it)
+    index = 0;
+    for(const auto& cm : acm)
     {
-        fv_it=mesh.cfv_iter(*f_it);
+        Vertex vert;
 
-        for(int i = 0; i < 3; i++)
-        {
-            TriMesh::Color c(mesh.color(*f_it));
-            OpenMesh::Vec3f c_float(c[0]/255.0f, c[1]/255.0f, c[2]/255.0f);
+        vert = cm.cm[0][1];
+        points.push_back(vert.p);
+        colours.push_back(vert.c);
+        normals.push_back(vert.n);
+        faceIndeces.push_back(index);
 
-            points.push_back(mesh.point(*fv_it));
-            colours.push_back(c);
-            normals.push_back(mesh.normal(*fv_it));
-            index = points.size() - 1;
-            faceIndeces.push_back(index);
-            fv_it++;
-        }
+        vert = cm.cm[1][1];
+        points.push_back(vert.p);
+        colours.push_back(vert.c);
+        normals.push_back(vert.n);
+        index++;
+        faceIndeces.push_back(index);
+
+        vert = cm.cm[0][0];
+        points.push_back(vert.p);
+        colours.push_back(vert.c);
+        normals.push_back(vert.n);
+        index++;
+        faceIndeces.push_back(index);
+
+        faceIndeces.push_back(index);
+        faceIndeces.push_back(index-1);
+
+        vert = cm.cm[1][0];
+        points.push_back(vert.p);
+        colours.push_back(vert.c);
+        normals.push_back(vert.n);
+        index++;
+        faceIndeces.push_back(index);
+        index++;
     }
     #ifndef USE_OPENGL_LEGACY
         updateBuffers();
@@ -146,6 +165,7 @@ void HeartMesh::initializeACM()
     std::mt19937 rng(std::mt19937::default_seed);
     std::uniform_int_distribution<int> gen(0, 255);
 
+    acm.clear();
     pairedTrisEH.clear();
     pairedTrisFH.clear();
     pairedTrisFH.resize(mesh.n_faces(),-1);
@@ -169,6 +189,10 @@ void HeartMesh::initializeACM()
         }
         else
         {
+            CMap temp;
+            // heh1 is left, heh2 is right
+            createCMFromEdge(*edgeIter, temp);
+
             // Pair these triangles and add edge to list
             pairedTrisFH[f1.idx()] = f2.idx();
             pairedTrisFH[f2.idx()] = f1.idx();
@@ -181,13 +205,20 @@ void HeartMesh::initializeACM()
             TriMesh::Color c(r,g,b);
             mesh.set_color(f1, c);
             mesh.set_color(f2, c);
+            temp.cm[0][0].c = c;
+            temp.cm[1][1].c = c;
+            temp.cm[0][1].c = c;
+            temp.cm[1][0].c = c;
+            acm.push_back(temp);
         }
     }
     for(int i = 0; i < pairedTrisFH.size(); i++)
     {
         if(pairedTrisFH[i] == -1)
         {
-            ;
+            CMap temp;
+            TriMesh::HalfedgeHandle heh(mesh.halfedge_handle(mesh.face_handle(i)));
+            createPhantomCMFromEdge(heh, temp);
             // Pair these triangles and add edge to list
             pairedTrisEH.push_back(mesh.edge_handle(mesh.halfedge_handle(mesh.face_handle(i))));
             // set the face colour
@@ -196,9 +227,86 @@ void HeartMesh::initializeACM()
             int b = gen(rng);
             TriMesh::Color c(r,g,b);
             mesh.set_color(mesh.face_handle(i), c);
+            temp.cm[0][0].c = c;
+            temp.cm[1][1].c = c;
+            temp.cm[0][1].c = c;
+            temp.cm[1][0].c = c;
+            acm.push_back(temp);
         }
     }
 }
 
+void HeartMesh::createCMFromEdge(const TriMesh::EdgeHandle& edge, CMap& output)
+{
+    TriMesh::HalfedgeHandle heh1(mesh.halfedge_handle(edge, 0));
+    TriMesh::HalfedgeHandle heh2(mesh.halfedge_handle(edge, 1));
+    output.edgeKey = edge;
+    output.vectorScale = 1;
+    output.cm.resize(2);
+    for(auto& i : output.cm)
+    {
+        i.resize(2);
+    }
+    output.cm[0][0].p = mesh.point(mesh.to_vertex_handle(heh1));
+    output.cm[1][1].p = mesh.point(mesh.to_vertex_handle(heh2));
+    output.cm[0][1].p = mesh.point(
+                                 mesh.to_vertex_handle(
+                                                       mesh.next_halfedge_handle(heh1)
+                                                       )
+                                 );
+
+    output.cm[1][0].p = mesh.point(
+                                 mesh.to_vertex_handle(
+                                                       mesh.next_halfedge_handle(heh2)
+                                                       )
+                                 );
+
+    output.cm[0][0].n = mesh.normal(mesh.to_vertex_handle(heh1));
+    output.cm[1][1].n = mesh.normal(mesh.to_vertex_handle(heh2));
+    output.cm[0][1].n = mesh.normal(
+                                  mesh.to_vertex_handle(
+                                                        mesh.next_halfedge_handle(heh1)
+                                                        )
+                                  );
+
+    output.cm[1][0].n = mesh.normal(
+                                  mesh.to_vertex_handle(
+                                                        mesh.next_halfedge_handle(heh2)
+                                                        )
+                                  );
+    output.isPhantom = false;
+}
+
+void HeartMesh::createPhantomCMFromEdge(const TriMesh::HalfedgeHandle& heh, CMap& output)
+{
+    output.edgeKey = mesh.edge_handle(heh);
+    output.vectorScale = 1;
+    output.cm.resize(2);
+    for(auto& i : output.cm)
+    {
+        i.resize(2);
+    }
+    output.cm[0][0].p = mesh.point(mesh.to_vertex_handle(heh));
+    output.cm[1][1].p = mesh.point(mesh.from_vertex_handle(heh));
+    output.cm[0][1].p = mesh.point(
+                                   mesh.to_vertex_handle(
+                                                         mesh.next_halfedge_handle(heh)
+                                                         )
+                                   );
+
+    output.cm[1][0].p = output.cm[0][0].p;
+
+    output.cm[0][0].n = mesh.normal(mesh.to_vertex_handle(heh));
+    output.cm[1][1].n = mesh.normal(mesh.from_vertex_handle(heh));
+    output.cm[0][1].n = mesh.normal(
+                                   mesh.to_vertex_handle(
+                                                         mesh.next_halfedge_handle(heh)
+                                                         )
+                                   );
+
+    output.cm[1][0].n = output.cm[0][0].n;
+
+    output.isPhantom = true;
+}
 
 #endif

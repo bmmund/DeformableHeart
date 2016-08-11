@@ -14,6 +14,20 @@
 
 typedef OpenMesh::TriMesh_ArrayKernelT<>  TriMesh;
 
+typedef struct VertexAttributes
+{
+    TriMesh::Point p;
+    TriMesh::Color c;
+    TriMesh::Normal n;
+} Vertex;
+
+typedef struct connectivityMap {
+    TriMesh::EdgeHandle edgeKey;
+    std::vector<std::vector<Vertex>> cm;
+    float vectorScale;
+    bool isPhantom;
+} CMap;
+
 class HeartMesh
 {
 public:
@@ -38,8 +52,11 @@ private:
     std::vector<TriMesh::Color> colours;
     std::vector<TriMesh::EdgeHandle> pairedTrisEH;
     std::vector<int> pairedTrisFH;
+    std::vector<CMap> acm;
 
     void initFaceColours(TriMesh::Color c);
     void initializeACM();
+    void createCMFromEdge(const TriMesh::EdgeHandle& edge, CMap& output);
+    void createPhantomCMFromEdge(const TriMesh::HalfedgeHandle& heh, CMap& output);
 };
 #endif /* __HEART_MESH__HPP */
