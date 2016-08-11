@@ -1,0 +1,38 @@
+# Declare the library name
+set(LIB_NAME acm)
+set(ACM_LIB ${LIB_NAME} PARENT_SCOPE)
+
+#-------------------------------------------------------------------------------
+# Dependancies
+#-------------------------------------------------------------------------------
+#########################################################
+# Libs
+#########################################################
+list(APPEND LIBRARIES
+    "${OPENMESH_LIBRARIES}"
+    "${ACM_LIB}"
+)
+
+#########################################################
+# Headers
+#########################################################
+list(APPEND INCLUDES_DIRS
+    "${OPENMESH_INCLUDE_DIRS}"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+
+#-------------------------------------------------------------------------------
+# ACM
+#-------------------------------------------------------------------------------
+list(APPEND SRCS
+    acm.cc
+)
+
+list(APPEND HEADERS
+    acm.hpp
+)
+
+add_library (${LIB_NAME} ${SRCS} ${HEADERS})
+target_include_directories(${LIB_NAME} PUBLIC ${INCLUDES_DIRS})
+target_link_libraries(${LIB_NAME} ${LIBRARIES})
+set_property(TARGET ${LIB_NAME} PROPERTY CXX_STANDARD 11)

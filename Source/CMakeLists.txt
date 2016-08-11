@@ -63,12 +63,14 @@ set(SHADER_LOCATION ${RESOURCE_DIR})
 add_subdirectory(utilities)
 add_subdirectory(interaction)
 add_subdirectory(render_core)
+add_subdirectory(acm)
 add_subdirectory(mesh_processing)
 
 set(PROJECT_LIBS "")
 list(APPEND PROJECT_LIBS
     "${RENDER_CORE_LIB}"
     "${INTERACTION_LIB}"
+    "${ACM_LIB}"
     "${MESH_PROCESSING_LIB}"
     "${UTILITIES_LIB}"
 )
