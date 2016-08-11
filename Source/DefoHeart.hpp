@@ -7,9 +7,7 @@
 #include <glm/glm.hpp>
 #include "trackball.hpp"
 #include "rayselector.hpp"
-#ifndef USE_OPENGL_LEGACY
-    #include "shader.hpp"
-#endif
+#include "shader.hpp"
 
 class DefoHeart : public App
 {
@@ -18,14 +16,12 @@ public:
     ~DefoHeart();
     void loop();
 private:
-    #ifndef USE_OPENGL_LEGACY
-        Shader shaderPhong;
-		Shader shaderSolid;
-        GLuint modelLoc;
-        GLuint viewLoc;
-        GLuint projLoc;
-		GLuint colourLoc;
-    #endif
+    Shader shaderPhong;
+    Shader shaderSolid;
+    GLuint modelLoc;
+    GLuint viewLoc;
+    GLuint projLoc;
+    GLuint colourLoc;
     HeartMesh mesh;
     Loop subDivider;
     Trackball trackball;
@@ -39,19 +35,6 @@ private:
     bool useNormal;
     bool useLighting;
     bool drawWireFrame;
-
-#ifdef USE_OPENGL_LEGACY
-    void updateGeometriesLegacy();
-    void drawMesh();
-    void drawMeshNormals();
-    void drawMeshPoints();
-    void drawMeshPoint(int index);
-    void drawEvenOddPoints();
-    void drawModelGnomenPoints();
-    void setDefaultMaterial(void);
-    void setHeartMaterial();
-    void setDefaultLight(void);
-#endif
     void initializeGL();
     void resetModelView();
     void resize();

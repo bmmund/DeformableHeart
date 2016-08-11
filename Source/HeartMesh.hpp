@@ -5,10 +5,8 @@
 #include <OpenMesh/Core/IO/MeshIO.hh>   // must be included before a mesh type
 #include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
 
-#ifndef USE_OPENGL_LEGACY
-    #include "glad/glad.h"
-    #include <GLFW/glfw3.h>
-#endif // !USE_OPENGL_LEGACY
+#include "glad/glad.h"
+#include <GLFW/glfw3.h>
 
 #include <vector>
 
@@ -35,15 +33,8 @@ public:
     ~HeartMesh();
     TriMesh* getTriMesh(){return &mesh;}
     void updateFaceIndeces();
-    #ifndef USE_OPENGL_LEGACY
-        void Draw();
-    #endif
+    void Draw();
 private:
-    #ifndef USE_OPENGL_LEGACY
-        GLuint VAO, VBO, EBO;
-        void createBuffers();
-        void updateBuffers();
-    #endif
     std::string fname;
     TriMesh mesh;
     std::vector<int> faceIndeces;
@@ -54,6 +45,9 @@ private:
     std::vector<int> pairedTrisFH;
     std::vector<CMap> acm;
 
+    GLuint VAO, VBO, EBO;
+    void createBuffers();
+    void updateBuffers();
     void initFaceColours(TriMesh::Color c);
     void initializeACM();
     void createCMFromEdge(const TriMesh::EdgeHandle& edge, CMap& output);

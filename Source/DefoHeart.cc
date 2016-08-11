@@ -1,8 +1,6 @@
 #include "DefoHeart.hpp"
 
-#ifndef USE_OPENGL_LEGACY
-    #include "glad/glad.h"
-#endif // !USE_OPENGL_LEGACY
+#include "glad/glad.h"
 
 #include <GLFW/glfw3.h>
 #include <string>
@@ -19,10 +17,8 @@ std::string const application_name = "DefoHeart";
 
 DefoHeart::DefoHeart()
 	: App(windowWidth, windowHeight, application_name),
-#ifndef USE_OPENGL_LEGACY
-	shaderPhong("vertex.glsl", "fragment.glsl"),
-	shaderSolid("vertexSolid.glsl", "fragSolid.glsl"),
-        #endif
+        shaderPhong("vertex.glsl", "fragment.glsl"),
+        shaderSolid("vertexSolid.glsl", "fragSolid.glsl"),
         mesh(DODEDECAHEDRON_MESH_PATH),
         subDivider(),
         trackball(windowWidth, windowHeight),
@@ -45,253 +41,33 @@ void DefoHeart::loop()
     // Clear the frame buffer
     glClearColor(0.1f, 0.2f, 0.2f, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    shaderPhong.Use();
+    getAtterLocations(shaderPhong);
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelM));
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewM));
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projM));
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    mesh.Draw();
+    glDisable(GL_POLYGON_OFFSET_FILL);
 
-    #if defined(USE_OPENGL_LEGACY)
-        updateGeometriesLegacy();
-    #else
-        shaderPhong.Use();
-		getAtterLocations(shaderPhong);
+    if (drawWireFrame)
+    {
+        shaderSolid.Use();
+        getAtterLocations(shaderSolid);
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelM));
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewM));
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projM));
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glm::vec3 colour(0.0f, 0.0f, 0.0f);
+        glUniform3fv(colourLoc, 1, glm::value_ptr(colour));
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         mesh.Draw();
-		glDisable(GL_POLYGON_OFFSET_FILL);
-
-		if (drawWireFrame)
-		{
-			shaderSolid.Use();
-			getAtterLocations(shaderSolid);
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelM));
-			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewM));
-			glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projM));
-			glm::vec3 colour(0.0f, 0.0f, 0.0f);
-			glUniform3fv(colourLoc, 1, glm::value_ptr(colour));
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			mesh.Draw();
-		}
-    #endif
+    }
 }
-
-
-#ifdef USE_OPENGL_LEGACY
-    void DefoHeart::updateGeometriesLegacy()
-    {
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glLoadMatrixf(&(projM[0][0]));
-
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-        glm::mat4 modelViewM = viewM * modelM;
-        glLoadMatrixf(&(modelViewM[0][0]));
-
-        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-        glEnable( GL_POLYGON_OFFSET_FILL );
-        glPolygonOffset( 1, 1 );
-        glColor3f(0.4f, 0.f, 0.f);
-        drawMesh();
-        glDisable( GL_POLYGON_OFFSET_FILL );
-
-        glDisable(GL_LIGHTING);
-        // draw the wireframe
-        if(drawWireFrame)
-        {
-            glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-            glColor3f(0.0f, 0.f, 0.f);
-            drawMesh();
-        }
-
-        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-        glColor3f(1.0, 1.0, 1.0);
-        drawMeshPoints();
-        drawEvenOddPoints();
-
-        if(useLighting)
-            glEnable(GL_LIGHTING);
-        glFlush();
-    }
-
-    void DefoHeart::drawMesh()
-    {
-        setHeartMaterial();
-        glBegin(GL_TRIANGLES);
-        TriMesh* meshPtr = mesh.getTriMesh();
-        for(TriMesh::FaceIter f_it = meshPtr->faces_sbegin();
-            f_it != meshPtr->faces_end(); ++f_it)
-        {
-            for(TriMesh::FaceVertexIter fv_it = meshPtr->fv_iter(*f_it);
-                fv_it.is_valid();
-                ++fv_it)
-            {
-                if (!meshPtr->has_vertex_normals())
-                {
-                    std::cerr << "ERROR: Standard vertex property 'Normals' not available!\n";
-                    return;
-                }
-                TriMesh::Normal n = meshPtr->normal(*fv_it);
-                glNormal3fv(n.data());
-                TriMesh::Point p = meshPtr->point(*fv_it);
-                glVertex3fv(p.data());
-            }
-        }
-        glEnd();
-    }
-
-    void DefoHeart::drawMeshNormals()
-    {
-        glBegin(GL_LINES);
-        TriMesh* meshPtr = mesh.getTriMesh();
-        for(TriMesh::FaceIter f_it = meshPtr->faces_sbegin();
-            f_it != meshPtr->faces_end(); ++f_it)
-        {
-            for(TriMesh::FaceVertexIter fv_it = meshPtr->fv_iter(*f_it);
-                fv_it.is_valid();
-                ++fv_it)
-            {
-                if (!meshPtr->has_vertex_normals())
-                {
-                    std::cerr << "ERROR: Standard vertex property 'Normals' not available!\n";
-                    return;
-                }
-                TriMesh::Normal n = meshPtr->normal(*fv_it);
-                TriMesh::Point p = meshPtr->point(*fv_it);
-                glVertex3fv(p.data());
-                glVertex3fv(n.data());
-            }
-        }
-        glEnd();
-    }
-
-    void DefoHeart::drawMeshPoints()
-    {
-        glPointSize(5);
-        glBegin(GL_POINTS);
-        TriMesh* meshPtr = mesh.getTriMesh();
-        for(TriMesh::VertexIter v_it = meshPtr->vertices_sbegin();
-            v_it != meshPtr->vertices_end(); ++v_it)
-        {
-            TriMesh::Point p = meshPtr->point(*v_it);
-            if(selectedIdx == (*v_it).idx())
-                glVertex3fv(p.data());
-        }
-        glEnd();
-    }
-
-    void DefoHeart::drawEvenOddPoints()
-    {
-        glPointSize(5);
-        glBegin(GL_POINTS);
-        TriMesh* meshPtr = mesh.getTriMesh();
-        for (TriMesh::VertexIter v_it = meshPtr->vertices_sbegin();
-            v_it != meshPtr->vertices_end(); ++v_it)
-        {
-            TriMesh::Point p = meshPtr->point(*v_it);
-            if (subDivider.isVertEven(meshPtr,*v_it))
-                glColor3f(0.0, 1.0, 0.0);
-            else
-                glColor3f(0.0, 0.0, 1.0);
-            glVertex3fv(p.data());
-        }
-        glEnd();
-    }
-
-    void DefoHeart::drawMeshPoint(int index)
-    {
-        TriMesh* meshPtr = mesh.getTriMesh();
-        // Check if index is out of bounds
-        if( index < 0 || index >= meshPtr->n_vertices())
-            return;
-        glPointSize(5);
-        glBegin(GL_POINTS);
-        TriMesh::Point p = meshPtr->point(meshPtr->vertex_handle(index));
-        glVertex3fv(p.data());
-        glEnd();
-    }
-
-    void DefoHeart::drawModelGnomenPoints()
-    {
-        glPointSize(5);
-        glBegin(GL_POINTS);
-        glColor3f(0.4f, 0.f, 1.f);
-        glVertex3f(0, 0, 0);
-        glColor3f(1.f, 0.f, 0.f);
-        glVertex3f(1.f, 0, 0);
-        glColor3f(0.f, 1.f, 0.f);
-        glVertex3f(0, 1.0f, 0);
-        glColor3f(0.f, 0.f, 1.f);
-        glVertex3f(0, 0, 1.f);
-        glEnd();
-    }
-
-    void DefoHeart::setDefaultMaterial(void)
-    {
-        GLfloat mat_a[] = {0.1, 0.1, 0.1, 1.0};
-        GLfloat mat_d[] = {0.7, 0.7, 0.5, 1.0};
-        GLfloat mat_s[] = {1.0, 1.0, 1.0, 1.0};
-        GLfloat shine[] = {120.0};
-
-        glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,   mat_a);
-        glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,   mat_d);
-        glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,  mat_s);
-        glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shine);
-    }
-
-    void DefoHeart::setHeartMaterial(void)
-    {
-        GLfloat mat_a[] = {0.1, 0.0, 0., 1.0};
-        GLfloat mat_d[] = {0.4, 0.2, 0.2, 1.0};
-        GLfloat mat_s[] = {1.0, 1.0, 1.0, 1.0};
-        GLfloat shine[] = {120.0};
-
-        glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,   mat_a);
-        glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,   mat_d);
-        glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,  mat_s);
-        glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shine);
-    }
-
-    void DefoHeart::setDefaultLight(void)
-    {
-        GLfloat pos1[] = { 0,  1.0,  1.4,  0.0};
-        GLfloat col1[] = { 1,1,1,  1.0};
-        GLfloat col2[] = { 0, 0, 0,  1.0};
-
-        glEnable(GL_LIGHT0);
-        glLightfv(GL_LIGHT0,GL_POSITION, pos1);
-        glLightfv(GL_LIGHT0,GL_DIFFUSE,  col1);
-        glLightfv(GL_LIGHT0,GL_SPECULAR, col2);
-
-    }
-#endif // USE_OPENGL_LEGACY
 
 void DefoHeart::initializeGL()
 {
 	glEnable(GL_DEPTH_TEST);
-#ifdef USE_OPENGL_LEGACY
-    // OpenGL state
-    glShadeModel(GL_SMOOTH);
-    glEnable(GL_LIGHTING);
-    // Material
-    setDefaultMaterial();
-
-    // Lighting
-    glLoadIdentity();
-    setDefaultLight();
-
-    // Fog
-    GLfloat fogColor[4] = { 0.3, 0.3, 0.4, 1.0 };
-    glFogi(GL_FOG_MODE,    GL_LINEAR);
-    glFogfv(GL_FOG_COLOR,  fogColor);
-    glFogf(GL_FOG_DENSITY, 0.35);
-    glHint(GL_FOG_HINT,    GL_DONT_CARE);
-    glFogf(GL_FOG_START,    5.0f);
-    glFogf(GL_FOG_END,     25.0f);
-
-
-#else
 	getAtterLocations(shaderPhong);
-#endif
-
     resetModelView();
     resize();
 }

@@ -18,10 +18,6 @@ endfunction(COPY_RESOURCE)
 #-------------------------------------------------------------------------------
 # Project Setup
 #-------------------------------------------------------------------------------
-option(USE_OPENGL_LEGACY "Use fixed-pipeline opengl" ON)
-if(USE_OPENGL_LEGACY)
-    add_definitions(-DUSE_OPENGL_LEGACY)
-endif()
 # Declare the app name in the APP_NAME var
 set(APP_NAME demo)
 set(RESOURCE_DIR ${PROJECT_SOURCE_DIR}/Resources)

@@ -32,12 +32,8 @@ HeartMesh::HeartMesh(std::string filename)
     mesh.update_normals();
     initFaceColours(TriMesh::Color(102, 0, 0));
     initializeACM();
-
-    #ifndef USE_OPENGL_LEGACY
-        createBuffers();
-    #endif
-
-        updateFaceIndeces();
+    createBuffers();
+    updateFaceIndeces();
 }
 
 HeartMesh::~HeartMesh()
@@ -97,12 +93,9 @@ void HeartMesh::updateFaceIndeces()
         faceIndeces.push_back(index);
         index++;
     }
-    #ifndef USE_OPENGL_LEGACY
-        updateBuffers();
-    #endif
+    updateBuffers();
 }
 
-#ifndef USE_OPENGL_LEGACY
 void HeartMesh::Draw()
 {
     glBindVertexArray(VAO);
@@ -308,5 +301,3 @@ void HeartMesh::createPhantomCMFromEdge(const TriMesh::HalfedgeHandle& heh, CMap
 
     output.isPhantom = true;
 }
-
-#endif
