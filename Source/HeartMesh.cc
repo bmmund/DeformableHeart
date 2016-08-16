@@ -4,7 +4,8 @@
 
 HeartMesh::HeartMesh(std::string filename)
     : fname(filename),
-      mesh()
+      mesh(),
+      acm()
 {
     mesh.request_vertex_normals();
     mesh.request_face_normals();
@@ -58,7 +59,7 @@ void HeartMesh::updateFaceIndeces()
     faceIndeces.reserve(mesh.n_faces()*3);
 
     index = 0;
-    for(const auto& cm : acm)
+    for(const auto& cm : acm.connectivityMaps())
     {
         Vertex vert;
 
@@ -202,7 +203,7 @@ void HeartMesh::initializeACM()
             temp.cm[1][1].c = c;
             temp.cm[0][1].c = c;
             temp.cm[1][0].c = c;
-            acm.push_back(temp);
+            acm.add(temp);
         }
     }
     for(int i = 0; i < pairedTrisFH.size(); i++)
@@ -224,7 +225,7 @@ void HeartMesh::initializeACM()
             temp.cm[1][1].c = c;
             temp.cm[0][1].c = c;
             temp.cm[1][0].c = c;
-            acm.push_back(temp);
+            acm.add(temp);
         }
     }
 }

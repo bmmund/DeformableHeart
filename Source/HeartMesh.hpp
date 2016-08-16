@@ -31,7 +31,7 @@ private:
     std::vector<TriMesh::Color> colours;
     std::vector<TriMesh::EdgeHandle> pairedTrisEH;
     std::vector<int> pairedTrisFH;
-    std::vector<CMap> acm;
+    ACM acm;
 
     GLuint VAO, VBO, EBO;
     void createBuffers();

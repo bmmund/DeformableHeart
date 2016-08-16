@@ -22,4 +22,19 @@ typedef struct connectivityMap {
     bool isPhantom;
 } CMap;
 
+class ACM {
+public:
+    ACM();
+    std::vector<CMap>& connectivityMaps();
+    void add(const CMap& cm);
+    void clear();
+    std::vector<Vertex*>::iterator v_begin(){return v_list.begin();}
+    std::vector<Vertex*>::iterator v_end(){return v_list.end();}
+
+private:
+    std::vector<CMap> cm_list;
+    std::vector<Vertex*> v_list;
+};
+
+
 #endif /* __ACM__HPP */
