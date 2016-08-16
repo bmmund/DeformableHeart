@@ -64,22 +64,22 @@ void HeartMesh::updateFaceIndeces()
         Vertex vert;
 
         vert = cm.cm[0][1];
-        points.push_back(vert.p);
-        colours.push_back(vert.c);
-        normals.push_back(vert.n);
+        points.push_back(vert.point);
+        colours.push_back(vert.colour);
+        normals.push_back(vert.normal);
         faceIndeces.push_back(index);
 
         vert = cm.cm[1][1];
-        points.push_back(vert.p);
-        colours.push_back(vert.c);
-        normals.push_back(vert.n);
+        points.push_back(vert.point);
+        colours.push_back(vert.colour);
+        normals.push_back(vert.normal);
         index++;
         faceIndeces.push_back(index);
 
         vert = cm.cm[0][0];
-        points.push_back(vert.p);
-        colours.push_back(vert.c);
-        normals.push_back(vert.n);
+        points.push_back(vert.point);
+        colours.push_back(vert.colour);
+        normals.push_back(vert.normal);
         index++;
         faceIndeces.push_back(index);
 
@@ -87,9 +87,9 @@ void HeartMesh::updateFaceIndeces()
         faceIndeces.push_back(index-1);
 
         vert = cm.cm[1][0];
-        points.push_back(vert.p);
-        colours.push_back(vert.c);
-        normals.push_back(vert.n);
+        points.push_back(vert.point);
+        colours.push_back(vert.colour);
+        normals.push_back(vert.normal);
         index++;
         faceIndeces.push_back(index);
         index++;
@@ -116,9 +116,9 @@ void HeartMesh::updateBuffers()
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-    int points_size = points.size() * sizeof(TriMesh::Point);
-    int normals_size = normals.size() * sizeof(TriMesh::Normal);
-    int colours_size = colours.size() * sizeof(TriMesh::Color);
+    int points_size = points.size() * sizeof(glm::vec3);
+    int normals_size = normals.size() * sizeof(glm::vec3);
+    int colours_size = colours.size() * sizeof(glm::vec3);
     int vertex_size = points_size + normals_size + colours_size;
 
     glBufferData(GL_ARRAY_BUFFER, vertex_size, NULL, GL_STATIC_DRAW);
@@ -139,7 +139,7 @@ void HeartMesh::updateBuffers()
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)points_size);
     // Vertex Colours
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_UNSIGNED_BYTE, GL_FALSE, 0, (GLvoid*)(points_size+normals_size));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)(points_size+normals_size));
 
     glBindVertexArray(0);
 }
@@ -199,10 +199,12 @@ void HeartMesh::initializeACM()
             TriMesh::Color c(r,g,b);
             mesh.set_color(f1, c);
             mesh.set_color(f2, c);
-            temp.cm[0][0].c = c;
-            temp.cm[1][1].c = c;
-            temp.cm[0][1].c = c;
-            temp.cm[1][0].c = c;
+            glm::vec3 colourf(c[0]/255.0f, c[1]/255.0f, c[2]/255.0f);
+            temp.colour = colourf;
+            temp.cm[0][0].colour = colourf;
+            temp.cm[1][1].colour = colourf;
+            temp.cm[0][1].colour = colourf;
+            temp.cm[1][0].colour = colourf;
             acm.add(temp);
         }
     }
@@ -221,10 +223,12 @@ void HeartMesh::initializeACM()
             int b = gen(rng);
             TriMesh::Color c(r,g,b);
             mesh.set_color(mesh.face_handle(i), c);
-            temp.cm[0][0].c = c;
-            temp.cm[1][1].c = c;
-            temp.cm[0][1].c = c;
-            temp.cm[1][0].c = c;
+            glm::vec3 colourf(c[0]/255.0f, c[1]/255.0f, c[2]/255.0f);
+            temp.colour = colourf;
+            temp.cm[0][0].colour = colourf;
+            temp.cm[1][1].colour = colourf;
+            temp.cm[0][1].colour = colourf;
+            temp.cm[1][0].colour = colourf;
             acm.add(temp);
         }
     }
@@ -234,71 +238,69 @@ void HeartMesh::createCMFromEdge(const TriMesh::EdgeHandle& edge, CMap& output)
 {
     TriMesh::HalfedgeHandle heh1(mesh.halfedge_handle(edge, 0));
     TriMesh::HalfedgeHandle heh2(mesh.halfedge_handle(edge, 1));
-    output.edgeKey = edge;
     output.vectorScale = 1;
     output.cm.resize(2);
     for(auto& i : output.cm)
     {
         i.resize(2);
     }
-    output.cm[0][0].p = mesh.point(mesh.to_vertex_handle(heh1));
-    output.cm[1][1].p = mesh.point(mesh.to_vertex_handle(heh2));
-    output.cm[0][1].p = mesh.point(
+    output.cm[0][0].point = pointToVec3(mesh.point(mesh.to_vertex_handle(heh1)));
+    output.cm[1][1].point = pointToVec3(mesh.point(mesh.to_vertex_handle(heh2)));
+    output.cm[0][1].point = pointToVec3(mesh.point(
                                  mesh.to_vertex_handle(
                                                        mesh.next_halfedge_handle(heh1)
                                                        )
-                                 );
+                                 ));
 
-    output.cm[1][0].p = mesh.point(
+    output.cm[1][0].point = pointToVec3(mesh.point(
                                  mesh.to_vertex_handle(
                                                        mesh.next_halfedge_handle(heh2)
                                                        )
-                                 );
+                                 ));
 
-    output.cm[0][0].n = mesh.normal(mesh.to_vertex_handle(heh1));
-    output.cm[1][1].n = mesh.normal(mesh.to_vertex_handle(heh2));
-    output.cm[0][1].n = mesh.normal(
+    output.cm[0][0].normal = pointToVec3(mesh.normal(mesh.to_vertex_handle(heh1)));
+    output.cm[1][1].normal = pointToVec3(mesh.normal(mesh.to_vertex_handle(heh2)));
+    output.cm[0][1].normal = pointToVec3(mesh.normal(
                                   mesh.to_vertex_handle(
                                                         mesh.next_halfedge_handle(heh1)
                                                         )
-                                  );
+                                  ));
 
-    output.cm[1][0].n = mesh.normal(
+    output.cm[1][0].normal = pointToVec3(mesh.normal(
                                   mesh.to_vertex_handle(
                                                         mesh.next_halfedge_handle(heh2)
                                                         )
-                                  );
+                                  ));
     output.isPhantom = false;
 }
 
 void HeartMesh::createPhantomCMFromEdge(const TriMesh::HalfedgeHandle& heh, CMap& output)
 {
-    output.edgeKey = mesh.edge_handle(heh);
     output.vectorScale = 1;
     output.cm.resize(2);
     for(auto& i : output.cm)
     {
         i.resize(2);
     }
-    output.cm[0][0].p = mesh.point(mesh.to_vertex_handle(heh));
-    output.cm[1][1].p = mesh.point(mesh.from_vertex_handle(heh));
-    output.cm[0][1].p = mesh.point(
+    output.cm[0][0].point = pointToVec3(mesh.point(mesh.to_vertex_handle(heh)));
+    output.cm[1][1].point = pointToVec3(mesh.point(mesh.from_vertex_handle(heh)));
+    output.cm[0][1].point = pointToVec3(mesh.point(
                                    mesh.to_vertex_handle(
                                                          mesh.next_halfedge_handle(heh)
                                                          )
-                                   );
+                                   ));
 
-    output.cm[1][0].p = output.cm[0][0].p;
+    output.cm[1][0].point = output.cm[0][0].point;
 
-    output.cm[0][0].n = mesh.normal(mesh.to_vertex_handle(heh));
-    output.cm[1][1].n = mesh.normal(mesh.from_vertex_handle(heh));
-    output.cm[0][1].n = mesh.normal(
+    output.cm[0][0].normal = pointToVec3(mesh.normal(mesh.to_vertex_handle(heh)));
+    output.cm[1][1].normal = pointToVec3(mesh.normal(mesh.from_vertex_handle(heh)));
+    output.cm[0][1].normal = pointToVec3(mesh.normal(
                                    mesh.to_vertex_handle(
                                                          mesh.next_halfedge_handle(heh)
                                                          )
-                                   );
+                                   ));
 
-    output.cm[1][0].n = output.cm[0][0].n;
+    output.cm[1][0].normal = output.cm[0][0].normal;
 
     output.isPhantom = true;
 }

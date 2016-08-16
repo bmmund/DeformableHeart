@@ -38,7 +38,7 @@ void main(void)
     vs_out.V = -P.xyz;
 
     // Store the colour attribute
-    vs_out.C = colour/255.0f;
+    vs_out.C = colour;
 
     // Calculate the clip-space position of each vertex
     gl_Position = projection * P;
