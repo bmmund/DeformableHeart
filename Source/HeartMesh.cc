@@ -45,9 +45,6 @@ HeartMesh::~HeartMesh()
 
 void HeartMesh::updateFaceIndeces()
 {
-    TriMesh::ConstFaceIter        f_it(mesh.faces_sbegin()),
-    f_end(mesh.faces_end());
-    TriMesh::ConstFaceVertexIter  fv_it;
     int index;
 
     points.clear();
@@ -63,35 +60,35 @@ void HeartMesh::updateFaceIndeces()
     index = 0;
     for(const auto& cm : acm.connectivityMaps())
     {
-        Vertex vert;
+        Vertex *vert;
 
-        vert = cm.cm[0][1];
-        points.push_back(vert.point);
-        colours.push_back(vert.colour);
-        normals.push_back(vert.normal);
+        vert = acm.getVertex(cm.cm[0][1]);
+        points.push_back(vert->point);
+        colours.push_back(vert->colour);
+        normals.push_back(vert->normal);
         faceIndeces.push_back(index);
 
-        vert = cm.cm[1][1];
-        points.push_back(vert.point);
-        colours.push_back(vert.colour);
-        normals.push_back(vert.normal);
+        vert = acm.getVertex(cm.cm[1][1]);
+        points.push_back(vert->point);
+        colours.push_back(vert->colour);
+        normals.push_back(vert->normal);
         index++;
         faceIndeces.push_back(index);
 
-        vert = cm.cm[0][0];
-        points.push_back(vert.point);
-        colours.push_back(vert.colour);
-        normals.push_back(vert.normal);
+        vert = acm.getVertex(cm.cm[0][0]);
+        points.push_back(vert->point);
+        colours.push_back(vert->colour);
+        normals.push_back(vert->normal);
         index++;
         faceIndeces.push_back(index);
 
         faceIndeces.push_back(index);
         faceIndeces.push_back(index-1);
 
-        vert = cm.cm[1][0];
-        points.push_back(vert.point);
-        colours.push_back(vert.colour);
-        normals.push_back(vert.normal);
+        vert = acm.getVertex(cm.cm[1][0]);
+        points.push_back(vert->point);
+        colours.push_back(vert->colour);
+        normals.push_back(vert->normal);
         index++;
         faceIndeces.push_back(index);
         index++;
@@ -205,59 +202,36 @@ void HeartMesh::createCMFromEdge(const TriMesh::EdgeHandle& edge)
     CMap output;
     TriMesh::HalfedgeHandle heh1(mesh.halfedge_handle(edge, 0));
     TriMesh::HalfedgeHandle heh2(mesh.halfedge_handle(edge, 1));
-    glm::vec3 v00, v01, v10, v11;
-    glm::vec3 n00, n01, n10, n11;
+    int r, g, b;
+    getRandomRGB(r, g, b);
+    glm::vec3 colourf(r/255.0f, g/255.0f, b/255.0f);
+
+    // set the face colour
+    output.colour = colourf;
     output.vectorScale = 1;
+
+    // allocate space
     output.cm.resize(2);
     for(auto& i : output.cm)
     {
         i.resize(2);
     }
-    v00 = pointToVec3(mesh.point(mesh.to_vertex_handle(heh1)));
-    v01 = pointToVec3(mesh.point(
-                                 mesh.to_vertex_handle(
-                                                       mesh.next_halfedge_handle(heh1)
-                                                       )
-                                 ));
-    v10 = pointToVec3(mesh.point(
-                                 mesh.to_vertex_handle(
-                                                       mesh.next_halfedge_handle(heh2)
-                                                       )
-                                 ));
 
-    v11 = pointToVec3(mesh.point(mesh.to_vertex_handle(heh2)));
-    output.cm[0][0].point = v00;
-    output.cm[1][1].point = v11;
-    output.cm[0][1].point = v01;
-    output.cm[1][0].point = v10;
+    TriMesh::VertexHandle vh00, vh01, vh10, vh11;
+    vh00 = mesh.to_vertex_handle(heh1);
+    vh01 = mesh.to_vertex_handle(mesh.next_halfedge_handle(heh1));
+    vh10 = mesh.to_vertex_handle(mesh.next_halfedge_handle(heh2));
+    vh11 = mesh.to_vertex_handle(heh2);
 
-    n00 = pointToVec3(mesh.normal(mesh.to_vertex_handle(heh1)));
-    n01 = pointToVec3(mesh.normal(
-                                  mesh.to_vertex_handle(
-                                                        mesh.next_halfedge_handle(heh1)
-                                                        )
-                                  ));
-    n10 = pointToVec3(mesh.normal(
-                                 mesh.to_vertex_handle(
-                                                       mesh.next_halfedge_handle(heh2)
-                                                       )
-                                 ));
-    n11 = pointToVec3(mesh.normal(mesh.to_vertex_handle(heh2)));
+    int v00(createACMVertex(vh00, colourf));
+    int v01(createACMVertex(vh01, colourf));
+    int v10(createACMVertex(vh10, colourf));
+    int v11(createACMVertex(vh11, colourf));
 
-    output.cm[0][0].normal = n00;
-    output.cm[1][1].normal = n11;
-    output.cm[0][1].normal = n01;
-    output.cm[1][0].normal = n10;
-
-    // set the face colour
-    int r, g, b;
-    getRandomRGB(r, g, b);
-    glm::vec3 colourf(r/255.0f, g/255.0f, b/255.0f);
-    output.colour = colourf;
-    output.cm[0][0].colour = colourf;
-    output.cm[1][1].colour = colourf;
-    output.cm[0][1].colour = colourf;
-    output.cm[1][0].colour = colourf;
+    output.cm[0][0] = v00;
+    output.cm[0][1] = v01;
+    output.cm[1][0] = v10;
+    output.cm[1][1] = v11;
 
     output.isPhantom = false;
     acm.add(output);
@@ -266,58 +240,55 @@ void HeartMesh::createCMFromEdge(const TriMesh::EdgeHandle& edge)
 void HeartMesh::createPhantomCMFromEdge(const TriMesh::HalfedgeHandle& heh)
 {
     CMap output;
-    glm::vec3 v00, v01, v10, v11;
-    glm::vec3 n00, n01, n10, n11;
+    int r, g, b;
+    getRandomRGB(r, g, b);
+    glm::vec3 colourf(r/255.0f, g/255.0f, b/255.0f);
+
+    // set the face colour
+    output.colour = colourf;
     output.vectorScale = 1;
+
+    // allocate space
     output.cm.resize(2);
     for(auto& i : output.cm)
     {
         i.resize(2);
     }
-    v00 = pointToVec3(mesh.point(mesh.to_vertex_handle(heh)));
-    v01 = pointToVec3(mesh.point(
-                                 mesh.to_vertex_handle(
-                                                       mesh.next_halfedge_handle(heh)
-                                                       )
-                                 ));
 
-    v10 = v00;
-    v11 = pointToVec3(mesh.point(mesh.from_vertex_handle(heh)));
+    TriMesh::VertexHandle vh00, vh01, vh10, vh11;
+    vh00 = mesh.to_vertex_handle(heh);
+    vh01 = mesh.to_vertex_handle(mesh.next_halfedge_handle(heh));
+    vh10 = vh00;
+    vh11 = mesh.from_vertex_handle(heh);
 
-    output.cm[0][0].point = v00;
-    output.cm[1][1].point = v11;
-    output.cm[0][1].point = v01;
-    output.cm[1][0].point = v10;
+    int v00(createACMVertex(vh00, colourf));
+    int v01(createACMVertex(vh01, colourf));
+    int v10(createACMVertex(vh10, colourf));
+    int v11(createACMVertex(vh11, colourf));
 
-    n00 = pointToVec3(mesh.normal(mesh.to_vertex_handle(heh)));
-    n01 = pointToVec3(mesh.normal(
-                                 mesh.to_vertex_handle(
-                                                       mesh.next_halfedge_handle(heh)
-                                                       )
-                                 ));
-
-    n10 = n00;
-    n11 = pointToVec3(mesh.normal(mesh.from_vertex_handle(heh)));
-
-    output.cm[0][0].normal = n00;
-    output.cm[1][1].normal = n11;
-    output.cm[0][1].normal = n01;
-    output.cm[1][0].normal = n10;
-
-    // set the face colour
-    int r, g, b;
-    getRandomRGB(r, g, b);
-    glm::vec3 colourf(r/255.0f, g/255.0f, b/255.0f);
-    output.colour = colourf;
-    output.cm[0][0].colour = colourf;
-    output.cm[1][1].colour = colourf;
-    output.cm[0][1].colour = colourf;
-    output.cm[1][0].colour = colourf;
+    output.cm[0][0] = v00;
+    output.cm[0][1] = v01;
+    output.cm[1][0] = v10;
+    output.cm[1][1] = v11;
 
     output.isPhantom = true;
     acm.add(output);
 }
 
+int HeartMesh::createACMVertex(const TriMesh::VertexHandle triMeshVert)
+{
+    Vertex vert;
+    vert.point = pointToVec3(mesh.point(triMeshVert));
+    vert.normal = pointToVec3(mesh.normal(triMeshVert));
+    return acm.add_vertex(vert);
+}
+
+int HeartMesh::createACMVertex(const TriMesh::VertexHandle triMeshVert, glm::vec3 colour)
+{
+    int idx(createACMVertex(triMeshVert));
+    acm.getVertex(idx)->colour = colour;
+    return idx;
+}
 void HeartMesh::getRandomRGB(int &r, int &g, int &b)
 {
     r = gen(rng);
