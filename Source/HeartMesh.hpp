@@ -41,6 +41,7 @@ private:
     void updateBuffers();
     void initFaceColours(TriMesh::Color c);
     void initializeACM();
+    void initializeACMVerts();
     void createCMFromEdge(const TriMesh::EdgeHandle& edge);
     void createPhantomCMFromEdge(const TriMesh::HalfedgeHandle& heh);
     int createACMVertex(const TriMesh::VertexHandle triMeshVert);

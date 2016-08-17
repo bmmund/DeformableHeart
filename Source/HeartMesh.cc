@@ -61,23 +61,24 @@ void HeartMesh::updateFaceIndeces()
     for(const auto& cm : acm.connectivityMaps())
     {
         Vertex *vert;
+        glm::vec3 face_colour = cm.colour;
 
         vert = acm.getVertex(cm.cm[0][1]);
         points.push_back(vert->point);
-        colours.push_back(vert->colour);
+        colours.push_back(face_colour);
         normals.push_back(vert->normal);
         faceIndeces.push_back(index);
 
         vert = acm.getVertex(cm.cm[1][1]);
         points.push_back(vert->point);
-        colours.push_back(vert->colour);
+        colours.push_back(face_colour);
         normals.push_back(vert->normal);
         index++;
         faceIndeces.push_back(index);
 
         vert = acm.getVertex(cm.cm[0][0]);
         points.push_back(vert->point);
-        colours.push_back(vert->colour);
+        colours.push_back(face_colour);
         normals.push_back(vert->normal);
         index++;
         faceIndeces.push_back(index);
@@ -87,7 +88,7 @@ void HeartMesh::updateFaceIndeces()
 
         vert = acm.getVertex(cm.cm[1][0]);
         points.push_back(vert->point);
-        colours.push_back(vert->colour);
+        colours.push_back(face_colour);
         normals.push_back(vert->normal);
         index++;
         faceIndeces.push_back(index);
@@ -159,6 +160,8 @@ void HeartMesh::initializeACM()
     pairedTrisFH.clear();
     pairedTrisFH.resize(mesh.n_faces(),-1);
 
+    initializeACMVerts();
+
     TriMesh::ConstEdgeIter edgeIter;
     for(edgeIter = mesh.edges_begin();
         edgeIter != mesh.edges_end();
@@ -197,6 +200,15 @@ void HeartMesh::initializeACM()
     }
 }
 
+void HeartMesh::initializeACMVerts()
+{
+    TriMesh::VertexIter vit;
+    for(vit = mesh.vertices_begin(); vit != mesh.vertices_end(); vit++)
+    {
+        int idx(createACMVertex(*vit));
+    }
+}
+
 void HeartMesh::createCMFromEdge(const TriMesh::EdgeHandle& edge)
 {
     CMap output;
@@ -223,15 +235,10 @@ void HeartMesh::createCMFromEdge(const TriMesh::EdgeHandle& edge)
     vh10 = mesh.to_vertex_handle(mesh.next_halfedge_handle(heh2));
     vh11 = mesh.to_vertex_handle(heh2);
 
-    int v00(createACMVertex(vh00, colourf));
-    int v01(createACMVertex(vh01, colourf));
-    int v10(createACMVertex(vh10, colourf));
-    int v11(createACMVertex(vh11, colourf));
-
-    output.cm[0][0] = v00;
-    output.cm[0][1] = v01;
-    output.cm[1][0] = v10;
-    output.cm[1][1] = v11;
+    output.cm[0][0] = vh00.idx();
+    output.cm[0][1] = vh01.idx();
+    output.cm[1][0] = vh10.idx();
+    output.cm[1][1] = vh11.idx();
 
     output.isPhantom = false;
     acm.add(output);
@@ -261,15 +268,10 @@ void HeartMesh::createPhantomCMFromEdge(const TriMesh::HalfedgeHandle& heh)
     vh10 = vh00;
     vh11 = mesh.from_vertex_handle(heh);
 
-    int v00(createACMVertex(vh00, colourf));
-    int v01(createACMVertex(vh01, colourf));
-    int v10(createACMVertex(vh10, colourf));
-    int v11(createACMVertex(vh11, colourf));
-
-    output.cm[0][0] = v00;
-    output.cm[0][1] = v01;
-    output.cm[1][0] = v10;
-    output.cm[1][1] = v11;
+    output.cm[0][0] = vh00.idx();
+    output.cm[0][1] = vh01.idx();
+    output.cm[1][0] = vh10.idx();
+    output.cm[1][1] = vh11.idx();
 
     output.isPhantom = true;
     acm.add(output);
