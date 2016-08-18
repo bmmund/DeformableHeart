@@ -205,29 +205,17 @@ void HeartMesh::initializeACMVerts()
     TriMesh::VertexIter vit;
     for(vit = mesh.vertices_begin(); vit != mesh.vertices_end(); vit++)
     {
-        int idx(createACMVertex(*vit));
+        VertexHandle idx(createACMVertex(*vit));
     }
 }
 
 void HeartMesh::createCMFromEdge(const TriMesh::EdgeHandle& edge)
 {
-    CMap output;
     TriMesh::HalfedgeHandle heh1(mesh.halfedge_handle(edge, 0));
     TriMesh::HalfedgeHandle heh2(mesh.halfedge_handle(edge, 1));
-    int r, g, b;
-    getRandomRGB(r, g, b);
-    glm::vec3 colourf(r/255.0f, g/255.0f, b/255.0f);
 
-    // set the face colour
-    output.colour = colourf;
-    output.vectorScale = 1;
-
-    // allocate space
-    output.cm.resize(2);
-    for(auto& i : output.cm)
-    {
-        i.resize(2);
-    }
+    CMapHandle cmh(acm.addCmap());
+    acm.setFaceColour(cmh, getRandomRGBF());
 
     TriMesh::VertexHandle vh00, vh01, vh10, vh11;
     vh00 = mesh.to_vertex_handle(heh1);
@@ -235,32 +223,13 @@ void HeartMesh::createCMFromEdge(const TriMesh::EdgeHandle& edge)
     vh10 = mesh.to_vertex_handle(mesh.next_halfedge_handle(heh2));
     vh11 = mesh.to_vertex_handle(heh2);
 
-    output.cm[0][0] = vh00.idx();
-    output.cm[0][1] = vh01.idx();
-    output.cm[1][0] = vh10.idx();
-    output.cm[1][1] = vh11.idx();
-
-    output.isPhantom = false;
-    acm.add(output);
+    acm.addVertsToCMap(cmh, vh00.idx(), vh01.idx(), vh10.idx(), vh11.idx());
 }
 
 void HeartMesh::createPhantomCMFromEdge(const TriMesh::HalfedgeHandle& heh)
 {
-    CMap output;
-    int r, g, b;
-    getRandomRGB(r, g, b);
-    glm::vec3 colourf(r/255.0f, g/255.0f, b/255.0f);
-
-    // set the face colour
-    output.colour = colourf;
-    output.vectorScale = 1;
-
-    // allocate space
-    output.cm.resize(2);
-    for(auto& i : output.cm)
-    {
-        i.resize(2);
-    }
+    CMapHandle cmh(acm.addCmap());
+    acm.setFaceColour(cmh, getRandomRGBF());
 
     TriMesh::VertexHandle vh00, vh01, vh10, vh11;
     vh00 = mesh.to_vertex_handle(heh);
@@ -268,13 +237,7 @@ void HeartMesh::createPhantomCMFromEdge(const TriMesh::HalfedgeHandle& heh)
     vh10 = vh00;
     vh11 = mesh.from_vertex_handle(heh);
 
-    output.cm[0][0] = vh00.idx();
-    output.cm[0][1] = vh01.idx();
-    output.cm[1][0] = vh10.idx();
-    output.cm[1][1] = vh11.idx();
-
-    output.isPhantom = true;
-    acm.add(output);
+    acm.addVertsToCMap(cmh, vh00.idx(), vh01.idx(), vh10.idx(), vh11.idx(), true);
 }
 
 int HeartMesh::createACMVertex(const TriMesh::VertexHandle triMeshVert)
@@ -282,7 +245,7 @@ int HeartMesh::createACMVertex(const TriMesh::VertexHandle triMeshVert)
     Vertex vert;
     vert.point = pointToVec3(mesh.point(triMeshVert));
     vert.normal = pointToVec3(mesh.normal(triMeshVert));
-    return acm.add_vertex(vert);
+    return acm.addVertex(vert);
 }
 
 int HeartMesh::createACMVertex(const TriMesh::VertexHandle triMeshVert, glm::vec3 colour)
@@ -291,9 +254,19 @@ int HeartMesh::createACMVertex(const TriMesh::VertexHandle triMeshVert, glm::vec
     acm.getVertex(idx)->colour = colour;
     return idx;
 }
+
 void HeartMesh::getRandomRGB(int &r, int &g, int &b)
 {
     r = gen(rng);
     g = gen(rng);
     b = gen(rng);
+}
+
+glm::vec3 HeartMesh::getRandomRGBF()
+{
+    glm::vec3 rgb;
+    rgb.r = gen(rng)/255.0f;
+    rgb.g = gen(rng)/255.0f;
+    rgb.b = gen(rng)/255.0f;
+    return rgb;
 }

@@ -3,12 +3,17 @@
 
 #include <glm/glm.hpp>
 #include <vector>
+#include <map>
+#include <tuple>
+
+typedef int VertexHandle;
+typedef int CMapHandle;
 
 struct Vertex {
     glm::vec3 point;
     glm::vec3 colour;
     glm::vec3 normal;
-    int idx;
+    VertexHandle idx;
     Vertex()
     : point(0), colour(0), normal(0), idx(-1)
     {
@@ -19,12 +24,17 @@ struct Vertex {
     }
 };
 
-typedef struct connectivityMap {
-    std::vector<std::vector<int>> cm;
+struct CMap {
+    std::vector<std::vector<VertexHandle>> cm;
     glm::vec3 colour;
+    CMapHandle idx;
     float vectorScale;
     bool isPhantom;
-} CMap;
+    CMap()
+    : idx(-1), vectorScale(1), isPhantom(false)
+    {
+    }
+};
 
 class ACM {
 public:
@@ -34,14 +44,23 @@ public:
     void clear();
     std::vector<Vertex>::iterator v_begin(){return v_list.begin();}
     std::vector<Vertex>::iterator v_end(){return v_list.end();}
-    CMap& add_cmap();
-    int add_vertex();
-    int add_vertex(Vertex new_vertex);
+    CMapHandle addCmap();
+    VertexHandle addVertex();
+    VertexHandle addVertex(Vertex new_vertex);
     Vertex* getVertex(int idx);
+    void addVertsToCMap(CMapHandle cm_idx,
+                        VertexHandle vh00,
+                        VertexHandle vh01,
+                        VertexHandle vh10,
+                        VertexHandle vh11,
+                        bool isPhantom = false);
+    void setFaceColour(CMapHandle cm_idx, glm::vec3 colour);
 
 private:
     std::vector<CMap> cm_list;
     std::vector<Vertex> v_list;
+    std::map<int, std::vector<CMapHandle>> v_cm_map;
+    void updateVertexCMapMap(const std::vector<VertexHandle>& verts, const CMapHandle cm_idx);
 };
 
 

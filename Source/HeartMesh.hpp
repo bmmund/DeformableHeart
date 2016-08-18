@@ -48,5 +48,6 @@ private:
     int createACMVertex(const TriMesh::VertexHandle triMeshVert, glm::vec3 colour);
     inline glm::vec3 pointToVec3(OpenMesh::Vec3f p){return glm::vec3(p[0], p[1], p[2]);}
     void getRandomRGB(int& r, int& g, int& b);
+    glm::vec3 getRandomRGBF();
 };
 #endif /* __HEART_MESH__HPP */
