@@ -20,7 +20,6 @@ DefoHeart::DefoHeart()
         shaderPhong("vertex.glsl", "fragment.glsl"),
         shaderSolid("vertexSolid.glsl", "fragSolid.glsl"),
         mesh(CUBE_MESH_PATH),
-        subDivider(),
         trackball(windowWidth, windowHeight),
         rayselector(windowWidth, windowHeight, &projM, &viewM, &modelM, &cameraOrigin),
         selectedIdx(-1),
