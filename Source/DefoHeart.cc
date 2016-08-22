@@ -19,7 +19,7 @@ DefoHeart::DefoHeart()
 	: App(windowWidth, windowHeight, application_name),
         shaderPhong("vertex.glsl", "fragment.glsl"),
         shaderSolid("vertexSolid.glsl", "fragSolid.glsl"),
-        mesh(DODEDECAHEDRON_MESH_PATH),
+        mesh(CUBE_MESH_PATH),
         subDivider(),
         trackball(windowWidth, windowHeight),
         rayselector(windowWidth, windowHeight, &projM, &viewM, &modelM, &cameraOrigin),
@@ -95,19 +95,13 @@ void DefoHeart::keyCallbackImp(GLFWwindow* window, int key, int scancode, int ac
         glfwSetWindowShouldClose(window, GL_TRUE);
     else if(key == GLFW_KEY_S && action == GLFW_PRESS)
     {
-        if(subDivider.getSubDivisionDepth(mesh.getTriMesh())<1)
-        {
-            subDivider.subdivide(mesh.getTriMesh());
-            mesh.updateFaceIndeces();
-        }
+        mesh.getACM()->refine();
+        mesh.updateFaceIndeces();
     }
     else if (key == GLFW_KEY_D && action == GLFW_PRESS)
     {
-        if (subDivider.getSubDivisionDepth(mesh.getTriMesh())>=1)
-        {
-            subDivider.decompose(mesh.getTriMesh());
-            mesh.updateFaceIndeces();
-        }
+        mesh.getACM()->decompose();
+        mesh.updateFaceIndeces();
     }
     else if(key == GLFW_KEY_W && action == GLFW_PRESS)
     {

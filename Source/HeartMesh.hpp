@@ -22,6 +22,7 @@ public:
     HeartMesh(std::string filename);
     ~HeartMesh();
     TriMesh* getTriMesh(){return &mesh;}
+    ACM* getACM(){return &acm;}
     void updateFaceIndeces();
     void Draw();
 private:

@@ -1,4 +1,5 @@
 #include "acm.hpp"
+#include <algorithm>
 
 ACM::ACM()
 {
@@ -107,16 +108,101 @@ std::vector<std::array<VertexHandle, 3>> ACM::getCMapFaces(CMapHandle cm_idx)
     return faces;
 }
 
+
+void ACM::refine()
+{
+    for(auto& cm : cm_list)
+    {
+        if(cm.vectorScale > 1)
+        {
+            cm.vectorScale = std::max((cm.vectorScale / 2), 1);
+            continue;
+        }
+
+        // Create new temp container for filling
+        int origSize = cm.cm.size();
+        int newSize = (2*origSize) - 1;
+        std::vector<VertexHandle> v(newSize, -1);
+        std::vector<std::vector<VertexHandle>> cm_temp(newSize, v);
+
+        // put elements into their correct position
+        for(int i = 0; i < cm.cm.size(); i++)
+        {
+            for(int j = 0; j < cm.cm.at(i).size(); j++)
+            {
+                cm_temp.at(2*i).at(2*j) = cm.cm.at(i).at(j);
+            }
+        }
+
+        // replace cm with new bigger cm
+        cm.cm = cm_temp;
+
+        for(int i = 0; i < cm.cm.size(); i++)
+        {
+            for(int j = 0; j < cm.cm.size(); j++)
+            {
+                if(cm.cm.at(i).at(j) == -1)
+                {
+                    VertexHandle vert = addVertex();
+                    cm.cm.at(i).at(j) = vert;
+                    updateVertexCMapMap(vert, cm.idx);
+                }
+            }
+        }
+
+        // fill new verts with average values
+        for(int i = 0; i < cm.cm.size(); i+=2)
+        {
+            for(int j = 1; j < cm.cm.at(i).size(); j+=2)
+            {
+                Vertex* v1 = getVertex(cm.cm.at(i).at(j-1));
+                Vertex* v2 = getVertex(cm.cm.at(i).at(j+1));
+                Vertex* vnew = getVertex(cm.cm.at(i).at(j));
+                vnew->point = (v1->point + v2->point) / 2.0f;
+                vnew->colour = (v1->colour + v2->colour) / 2.0f;
+                vnew->normal = (v1->normal + v2->normal) / 2.0f;
+            }
+        }
+
+        for(int i = 1; i < cm.cm.size(); i+=2)
+        {
+            for(int j = 0; j < cm.cm.size(); j++)
+            {
+                Vertex* v1 = getVertex(cm.cm.at(i-1).at(j));
+                Vertex* v2 = getVertex(cm.cm.at(i+1).at(j));
+                Vertex* vnew = getVertex(cm.cm.at(i).at(j));
+                vnew->point = (v1->point + v2->point) / 2.0f;
+                vnew->colour = (v1->colour + v2->colour) / 2.0f;
+                vnew->normal = (v1->normal + v2->normal) / 2.0f;
+            }
+        }
+    }
+}
+
+void ACM::decompose()
+{
+    for(auto& cm : cm_list)
+    {
+        int maxVectorScale = cm.cm.size()-1;
+        cm.vectorScale = std::min((cm.vectorScale * 2), maxVectorScale);
+    }
+}
+
 void ACM::updateVertexCMapMap(const std::vector<VertexHandle>& verts, const CMapHandle cm_idx)
 {
     for(VertexHandle vh : verts)
     {
-        // this may be unecessary
-        if(v_cm_map.find(vh) == v_cm_map.end()) // not found
-        {
-            //create new entry
-            v_cm_map[vh];
-        }
-        v_cm_map[vh].push_back(cm_idx);
+        updateVertexCMapMap(vh, cm_idx);
     }
+}
+
+void ACM::updateVertexCMapMap(const VertexHandle& verts, const CMapHandle cm_idx)
+{
+    // this may be unecessary
+    if(v_cm_map.find(verts) == v_cm_map.end()) // not found
+    {
+        //create new entry
+        v_cm_map[verts];
+    }
+    v_cm_map[verts].push_back(cm_idx);
 }
