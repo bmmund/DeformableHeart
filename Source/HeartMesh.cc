@@ -62,37 +62,20 @@ void HeartMesh::updateFaceIndeces()
     {
         Vertex *vert;
         glm::vec3 face_colour = cm.colour;
-
-        vert = acm.getVertex(cm.cm[0][1]);
-        points.push_back(vert->point);
-        colours.push_back(face_colour);
-        normals.push_back(vert->normal);
-        faceIndeces.push_back(index);
-
-        vert = acm.getVertex(cm.cm[1][1]);
-        points.push_back(vert->point);
-        colours.push_back(face_colour);
-        normals.push_back(vert->normal);
-        index++;
-        faceIndeces.push_back(index);
-
-        vert = acm.getVertex(cm.cm[0][0]);
-        points.push_back(vert->point);
-        colours.push_back(face_colour);
-        normals.push_back(vert->normal);
-        index++;
-        faceIndeces.push_back(index);
-
-        faceIndeces.push_back(index);
-        faceIndeces.push_back(index-1);
-
-        vert = acm.getVertex(cm.cm[1][0]);
-        points.push_back(vert->point);
-        colours.push_back(face_colour);
-        normals.push_back(vert->normal);
-        index++;
-        faceIndeces.push_back(index);
-        index++;
+        std::vector<std::array<VertexHandle,3>> faces;
+        faces = acm.getCMapFaces(cm.idx);
+        for(const auto& face : faces)
+        {
+            for(const auto& vertHandle : face)
+            {
+                vert = acm.getVertex(vertHandle);
+                points.push_back(vert->point);
+                colours.push_back(face_colour);
+                normals.push_back(vert->normal);
+                faceIndeces.push_back(index);
+                index++;
+            }
+        }
     }
     updateBuffers();
 }

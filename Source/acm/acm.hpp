@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <tuple>
+#include <array>
 
 typedef int VertexHandle;
 typedef int CMapHandle;
@@ -47,7 +48,8 @@ public:
     CMapHandle addCmap();
     VertexHandle addVertex();
     VertexHandle addVertex(Vertex new_vertex);
-    Vertex* getVertex(int idx);
+    Vertex* getVertex(VertexHandle idx);
+    CMap* getCMap(CMapHandle idx);
     void addVertsToCMap(CMapHandle cm_idx,
                         VertexHandle vh00,
                         VertexHandle vh01,
@@ -55,6 +57,7 @@ public:
                         VertexHandle vh11,
                         bool isPhantom = false);
     void setFaceColour(CMapHandle cm_idx, glm::vec3 colour);
+    std::vector<std::array<VertexHandle, 3>> getCMapFaces(CMapHandle cm_idx);
 
 private:
     std::vector<CMap> cm_list;

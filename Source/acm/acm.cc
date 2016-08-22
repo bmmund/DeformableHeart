@@ -50,9 +50,14 @@ VertexHandle ACM::addVertex(Vertex new_vertex)
     return v_list.back().idx;
 }
 
-Vertex* ACM::getVertex(int idx)
+Vertex* ACM::getVertex(VertexHandle idx)
 {
     return &v_list.at(idx);
+}
+
+CMap* ACM::getCMap(CMapHandle idx)
+{
+    return &cm_list.at(idx);
 }
 
 void ACM::addVertsToCMap(CMapHandle cm_idx,
@@ -76,6 +81,30 @@ void ACM::addVertsToCMap(CMapHandle cm_idx,
 void ACM::setFaceColour(CMapHandle cm_idx, glm::vec3 colour)
 {
     cm_list.at(cm_idx).colour = colour;
+}
+
+std::vector<std::array<VertexHandle, 3>> ACM::getCMapFaces(CMapHandle cm_idx)
+{
+    std::vector<std::array<VertexHandle, 3>> faces;
+    CMap* cmap = getCMap(cm_idx);
+    for(int i = 0; i < cmap->cm.size()-1; i+=cmap->vectorScale)
+    {
+        for(int j = 0; j < cmap->cm.at(i).size()-1; j+=cmap->vectorScale)
+        {
+            std::array<VertexHandle, 3> verts;
+            // left triangle
+            verts[0] = cmap->cm.at(i).at(j);
+            verts[1] = cmap->cm.at(i+cmap->vectorScale).at(j);
+            verts[2] = cmap->cm.at(i+cmap->vectorScale).at(j+cmap->vectorScale);
+            faces.push_back(verts);
+            // right triangle
+            verts[0] = cmap->cm.at(i).at(j+cmap->vectorScale);
+            verts[1] = cmap->cm.at(i).at(j);
+            verts[2] = cmap->cm.at(i+cmap->vectorScale).at(j+cmap->vectorScale);
+            faces.push_back(verts);
+        }
+    }
+    return faces;
 }
 
 void ACM::updateVertexCMapMap(const std::vector<VertexHandle>& verts, const CMapHandle cm_idx)
