@@ -3,6 +3,7 @@
 
 #include "app.hpp"
 #include "HeartMesh.hpp"
+#include "loop_acm.hpp"
 #include <glm/glm.hpp>
 #include "trackball.hpp"
 #include "rayselector.hpp"
@@ -22,6 +23,7 @@ private:
     GLuint projLoc;
     GLuint colourLoc;
     HeartMesh mesh;
+    Loop subDivider;
     Trackball trackball;
     RaySelector rayselector;
     glm::mat4 modelM;

@@ -20,6 +20,7 @@ DefoHeart::DefoHeart()
         shaderPhong("vertex.glsl", "fragment.glsl"),
         shaderSolid("vertexSolid.glsl", "fragSolid.glsl"),
         mesh(CUBE_MESH_PATH),
+        subDivider(),
         trackball(windowWidth, windowHeight),
         rayselector(windowWidth, windowHeight, &projM, &viewM, &modelM, &cameraOrigin),
         selectedIdx(-1),
@@ -94,12 +95,12 @@ void DefoHeart::keyCallbackImp(GLFWwindow* window, int key, int scancode, int ac
         glfwSetWindowShouldClose(window, GL_TRUE);
     else if(key == GLFW_KEY_S && action == GLFW_PRESS)
     {
-        mesh.getACM()->refine();
+        subDivider.subdivide(mesh.getACM());
         mesh.updateFaceIndeces();
     }
     else if (key == GLFW_KEY_D && action == GLFW_PRESS)
     {
-        mesh.getACM()->decompose();
+        subDivider.decompose(mesh.getACM());
         mesh.updateFaceIndeces();
     }
     else if(key == GLFW_KEY_W && action == GLFW_PRESS)

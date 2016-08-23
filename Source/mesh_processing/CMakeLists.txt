@@ -9,6 +9,7 @@ set(MESH_PROCESSING_LIB ${LIB_NAME} PARENT_SCOPE)
 #########################################################
 list(APPEND LIBRARIES
     "${OPENMESH_LIBRARIES}"
+    "${ACM_LIB}"
 )
 
 #########################################################
@@ -25,11 +26,13 @@ list(APPEND INCLUDES_DIRS
 #-------------------------------------------------------------------------------
 list(APPEND SRCS
     loop.cc
+    loop_acm.cc
     deformation.cc
 )
 
 list(APPEND HEADERS
     loop.hpp
+    loop_acm.hpp
     deformation.hpp
 )
 
