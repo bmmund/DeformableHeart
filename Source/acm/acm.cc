@@ -28,11 +28,8 @@ CMapHandle ACM::addCmap()
     cm.idx = cm_list.size();
 
     // allocate space
-    cm.cm.resize(2);
-    for(auto& i : cm.cm)
-    {
-        i.resize(2);
-    }
+    std::vector<VertexHandle> v(2, -1);
+    cm.cm.resize(2, v);
 
     cm_list.push_back(cm);
     return cm_list.back().idx;

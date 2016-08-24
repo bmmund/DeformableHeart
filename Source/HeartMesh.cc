@@ -143,8 +143,6 @@ void HeartMesh::initializeACM()
     pairedTrisFH.clear();
     pairedTrisFH.resize(mesh.n_faces(),-1);
 
-    initializeACMVerts();
-
     QuadMesh::FaceIter f_iter;
     for(f_iter = mesh.faces_begin() ; f_iter != mesh.faces_end(); f_iter++)
     {
@@ -152,22 +150,14 @@ void HeartMesh::initializeACM()
         std::vector<VertexHandle> verts;
         for(fv_iter = mesh.fv_iter(*f_iter); fv_iter.is_valid(); fv_iter++)
         {
-            verts.push_back(fv_iter->idx());
+            VertexHandle idx(createACMVertex(*fv_iter));
+            verts.push_back(idx);
         }
         // create cm and add verts
         CMapHandle cm = acm.addCmap();
         acm.addVertsToCMap(cm, verts[0], verts[3], verts[1], verts[2]);
         acm.setFaceColour(cm, getRandomRGBF());
 
-    }
-}
-
-void HeartMesh::initializeACMVerts()
-{
-    QuadMesh::VertexIter vit;
-    for(vit = mesh.vertices_begin(); vit != mesh.vertices_end(); vit++)
-    {
-        VertexHandle idx(createACMVertex(*vit));
     }
 }
 
