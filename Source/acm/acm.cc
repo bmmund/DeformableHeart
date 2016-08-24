@@ -94,11 +94,11 @@ std::vector<std::array<VertexHandle, 3>> ACM::getCMapFaces(CMapHandle cm_idx)
             // left triangle
             verts[0] = cmap->cm.at(i).at(j);
             verts[1] = cmap->cm.at(i+cmap->vectorScale).at(j);
-            verts[2] = cmap->cm.at(i+cmap->vectorScale).at(j+cmap->vectorScale);
+            verts[2] = cmap->cm.at(i).at(j+cmap->vectorScale);
             faces.push_back(verts);
             // right triangle
             verts[0] = cmap->cm.at(i).at(j+cmap->vectorScale);
-            verts[1] = cmap->cm.at(i).at(j);
+            verts[1] = cmap->cm.at(i+cmap->vectorScale).at(j);
             verts[2] = cmap->cm.at(i+cmap->vectorScale).at(j+cmap->vectorScale);
             faces.push_back(verts);
         }
