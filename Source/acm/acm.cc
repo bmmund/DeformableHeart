@@ -65,11 +65,9 @@ void ACM::addVertsToCMap(CMapHandle cm_idx,
                          VertexHandle vh00,
                          VertexHandle vh01,
                          VertexHandle vh10,
-                         VertexHandle vh11,
-                         bool isPhantom)
+                         VertexHandle vh11)
 {
     CMap& cm(cm_list.at(cm_idx));
-    cm.isPhantom = isPhantom;
     cm.cm[0][0] = vh00;
     cm.cm[0][1] = vh01;
     cm.cm[1][0] = vh10;

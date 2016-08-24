@@ -29,9 +29,8 @@ struct CMap {
     glm::vec3 colour;
     CMapHandle idx;
     int vectorScale;
-    bool isPhantom;
     CMap()
-    : boundaryCMs({{-1, -1, -1, -1}}), idx(-1), vectorScale(1), isPhantom(false)
+    : boundaryCMs({{-1, -1, -1, -1}}), idx(-1), vectorScale(1)
     {
     }
 };
@@ -53,8 +52,7 @@ public:
                         VertexHandle vh00,
                         VertexHandle vh01,
                         VertexHandle vh10,
-                        VertexHandle vh11,
-                        bool isPhantom = false);
+                        VertexHandle vh11);
     void setFaceColour(CMapHandle cm_idx, glm::vec3 colour);
     std::vector<std::array<VertexHandle, 3>> getCMapFaces(CMapHandle cm_idx);
     void refine();
