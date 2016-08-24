@@ -142,12 +142,12 @@ void DefoHeart::keyCallbackImp(GLFWwindow* window, int key, int scancode, int ac
         {
             if(key == GLFW_KEY_DOWN)
             {
-                Deformation::pushVertsIn(mesh.getTriMesh(), selectedIdx, 0.01f);
+                Deformation::pushVertsIn(mesh.getQuadMesh(), selectedIdx, 0.01f);
 				mesh.updateFaceIndeces();
             }
             else
             {
-                Deformation::pushVertsOut(mesh.getTriMesh(), selectedIdx, 0.01f);
+                Deformation::pushVertsOut(mesh.getQuadMesh(), selectedIdx, 0.01f);
 				mesh.updateFaceIndeces();
             }
         }
@@ -188,7 +188,7 @@ void DefoHeart::mouseClickCallbackImp(GLFWwindow* window, int button, int action
             }
             else
             {
-                selectedIdx = rayselector.getVertexIndex(mesh.getTriMesh(), glm::vec2(mouseX, mouseY));
+                selectedIdx = rayselector.getVertexIndex(mesh.getQuadMesh(), glm::vec2(mouseX, mouseY));
             }
         }
     }

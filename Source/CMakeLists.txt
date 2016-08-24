@@ -41,8 +41,8 @@ set(DODEDECAHEDRON_MESH_NAME "dodecahedron.obj")
 set(DODEDECAHEDRON_MESH_MTL_NAME "dodecahedron.mtl")
 add_definitions(-DDODEDECAHEDRON_MESH_PATH=\"${DODEDECAHEDRON_MESH_NAME}\")
 
-set(CUBE_MESH_NAME "cube.obj")
-set(CUBE_MESH_MTL_NAME "cube.mtl")
+set(CUBE_MESH_NAME "cube_quad.obj")
+set(CUBE_MESH_MTL_NAME "cube_quad.mtl")
 add_definitions(-DCUBE_MESH_PATH=\"${CUBE_MESH_NAME}\")
 
 list(APPEND RESOURCES

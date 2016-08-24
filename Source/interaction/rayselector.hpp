@@ -2,10 +2,10 @@
 #define __RAY_SELECTOR__HPP
 
 #include <OpenMesh/Core/IO/MeshIO.hh>   // must be included before a mesh type
-#include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
+#include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
 #include <glm/glm.hpp>
 
-typedef OpenMesh::TriMesh_ArrayKernelT<>  TriMesh;
+typedef OpenMesh::PolyMesh_ArrayKernelT<>  QuadMesh;
 
 class RaySelector
 {
@@ -18,7 +18,7 @@ public:
                 glm::mat4* model,
                 glm::vec3* eye);
     void setWindow(int width, int height);
-    int getVertexIndex(TriMesh* mesh, glm::vec2 pixelCords);
+    int getVertexIndex(QuadMesh* mesh, glm::vec2 pixelCords);
 private:
     int screenWidth;
     int screenHeight;

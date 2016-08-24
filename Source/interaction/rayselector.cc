@@ -24,7 +24,7 @@ void RaySelector::setWindow(int width, int height)
     screenHeight = height;
 }
 
-int RaySelector::getVertexIndex(TriMesh *mesh, glm::vec2 pixelCords)
+int RaySelector::getVertexIndex(QuadMesh *mesh, glm::vec2 pixelCords)
 {
     int selectedIdx = -1;
     float dist;
@@ -52,11 +52,11 @@ int RaySelector::getVertexIndex(TriMesh *mesh, glm::vec2 pixelCords)
     glm::vec4 ray_dir(glm::normalize(ray_world));
     glm::vec4 ray_origin = glm::vec4(*cameraOrigin, 1.0f);
 
-    TriMesh::VertexIter v_it(mesh->vertices_sbegin());
+    QuadMesh::VertexIter v_it(mesh->vertices_sbegin());
     for(;v_it != mesh->vertices_end(); ++v_it)
     {
-        TriMesh::Point p = mesh->point(*v_it);
-        TriMesh::Normal n = mesh->normal(*v_it);
+        QuadMesh::Point p = mesh->point(*v_it);
+        QuadMesh::Normal n = mesh->normal(*v_it);
         glm::vec4 normal(n[0],n[1],n[2], 0.0f);
         glm::vec4 vertPoint(p[0],p[1],p[2], 1.0f);
         vertPoint = *modelM * vertPoint;

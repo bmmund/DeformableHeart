@@ -2,11 +2,11 @@
 
 #include <glm/glm.hpp>
 
-void pushVerts(TriMesh* mesh, int index, float amount)
+void pushVerts(QuadMesh* mesh, int index, float amount)
 {
-    TriMesh::VertexHandle vh(mesh->vertex_handle(index));
-    TriMesh::Normal n = mesh->normal(vh);
-    TriMesh::Point p = mesh->point(vh);
+    QuadMesh::VertexHandle vh(mesh->vertex_handle(index));
+    QuadMesh::Normal n = mesh->normal(vh);
+    QuadMesh::Point p = mesh->point(vh);
     glm::vec3 point(p[0],p[1],p[2]);
     glm::vec3 normal(n[0],n[1],n[2]);
     glm::vec3 displace(0,0,0);
@@ -19,12 +19,12 @@ void pushVerts(TriMesh* mesh, int index, float amount)
     mesh->set_point(vh, p);
 }
 
-void Deformation::pushVertsOut(TriMesh* mesh, int index, float amount)
+void Deformation::pushVertsOut(QuadMesh* mesh, int index, float amount)
 {
     pushVerts(mesh, index, amount);
 }
 
-void Deformation::pushVertsIn(TriMesh* mesh, int index, float amount)
+void Deformation::pushVertsIn(QuadMesh* mesh, int index, float amount)
 {
     pushVerts(mesh, index, -amount);
 }

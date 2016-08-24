@@ -33,7 +33,7 @@ HeartMesh::HeartMesh(std::string filename)
         std::cout << "faces:" << mesh.n_faces() << std::endl;
     }
     mesh.update_normals();
-    initFaceColours(TriMesh::Color(102, 0, 0));
+    initFaceColours(QuadMesh::Color(102, 0, 0));
     initializeACM();
     createBuffers();
     updateFaceIndeces();
@@ -127,9 +127,9 @@ void HeartMesh::updateBuffers()
     glBindVertexArray(0);
 }
 
-void HeartMesh::initFaceColours(TriMesh::Color c)
+void HeartMesh::initFaceColours(QuadMesh::Color c)
 {
-    TriMesh::ConstFaceIter        f_it(mesh.faces_sbegin()),
+    QuadMesh::ConstFaceIter        f_it(mesh.faces_sbegin()),
     f_end(mesh.faces_end());
     for (; f_it!=f_end; ++f_it)
     {
@@ -145,95 +145,43 @@ void HeartMesh::initializeACM()
 
     initializeACMVerts();
 
-    TriMesh::ConstEdgeIter edgeIter;
-    for(edgeIter = mesh.edges_begin();
-        edgeIter != mesh.edges_end();
-        edgeIter++)
+    QuadMesh::FaceIter f_iter;
+    for(f_iter = mesh.faces_begin() ; f_iter != mesh.faces_end(); f_iter++)
     {
-        TriMesh::HalfedgeHandle heh1(mesh.halfedge_handle(*edgeIter, 0));
-        TriMesh::HalfedgeHandle heh2(mesh.halfedge_handle(*edgeIter, 1));
-        TriMesh::FaceHandle f1(mesh.face_handle(heh1));
-        TriMesh::FaceHandle f2(mesh.face_handle(heh2));
+        QuadMesh::FaceVertexIter fv_iter;
+        std::vector<VertexHandle> verts;
+        for(fv_iter = mesh.fv_iter(*f_iter); fv_iter.is_valid(); fv_iter++)
+        {
+            verts.push_back(fv_iter->idx());
+        }
+        // create cm and add verts
+        CMapHandle cm = acm.addCmap();
+        acm.addVertsToCMap(cm, verts[0], verts[3], verts[1], verts[2]);
+        acm.setFaceColour(cm, getRandomRGBF());
 
-        // if either are already paired, skip this set
-        if( ( pairedTrisFH[f1.idx()] != -1 )
-           || (pairedTrisFH[f2.idx()] != -1)
-           )
-        {
-            continue;
-        }
-        else
-        {
-            // heh1 is left, heh2 is right
-            createCMFromEdge(*edgeIter);
-
-            // Pair these triangles and add edge to list
-            pairedTrisFH[f1.idx()] = f2.idx();
-            pairedTrisFH[f2.idx()] = f1.idx();
-        }
-    }
-    for(int i = 0; i < pairedTrisFH.size(); i++)
-    {
-        if(pairedTrisFH[i] == -1)
-        {
-            TriMesh::HalfedgeHandle heh(mesh.halfedge_handle(mesh.face_handle(i)));
-            createPhantomCMFromEdge(heh);
-            pairedTrisFH[i] = i;
-        }
     }
 }
 
 void HeartMesh::initializeACMVerts()
 {
-    TriMesh::VertexIter vit;
+    QuadMesh::VertexIter vit;
     for(vit = mesh.vertices_begin(); vit != mesh.vertices_end(); vit++)
     {
         VertexHandle idx(createACMVertex(*vit));
     }
 }
 
-void HeartMesh::createCMFromEdge(const TriMesh::EdgeHandle& edge)
-{
-    TriMesh::HalfedgeHandle heh1(mesh.halfedge_handle(edge, 0));
-    TriMesh::HalfedgeHandle heh2(mesh.halfedge_handle(edge, 1));
-
-    CMapHandle cmh(acm.addCmap());
-    acm.setFaceColour(cmh, getRandomRGBF());
-
-    TriMesh::VertexHandle vh00, vh01, vh10, vh11;
-    vh00 = mesh.to_vertex_handle(heh1);
-    vh01 = mesh.to_vertex_handle(mesh.next_halfedge_handle(heh1));
-    vh10 = mesh.to_vertex_handle(mesh.next_halfedge_handle(heh2));
-    vh11 = mesh.to_vertex_handle(heh2);
-
-    acm.addVertsToCMap(cmh, vh00.idx(), vh01.idx(), vh10.idx(), vh11.idx());
-}
-
-void HeartMesh::createPhantomCMFromEdge(const TriMesh::HalfedgeHandle& heh)
-{
-    CMapHandle cmh(acm.addCmap());
-    acm.setFaceColour(cmh, getRandomRGBF());
-
-    TriMesh::VertexHandle vh00, vh01, vh10, vh11;
-    vh00 = mesh.to_vertex_handle(heh);
-    vh01 = mesh.to_vertex_handle(mesh.next_halfedge_handle(heh));
-    vh10 = vh00;
-    vh11 = mesh.from_vertex_handle(heh);
-
-    acm.addVertsToCMap(cmh, vh00.idx(), vh01.idx(), vh10.idx(), vh11.idx(), true);
-}
-
-int HeartMesh::createACMVertex(const TriMesh::VertexHandle triMeshVert)
+int HeartMesh::createACMVertex(const QuadMesh::VertexHandle QuadMeshVert)
 {
     Vertex vert;
-    vert.point = pointToVec3(mesh.point(triMeshVert));
-    vert.normal = pointToVec3(mesh.normal(triMeshVert));
+    vert.point = pointToVec3(mesh.point(QuadMeshVert));
+    vert.normal = pointToVec3(mesh.normal(QuadMeshVert));
     return acm.addVertex(vert);
 }
 
-int HeartMesh::createACMVertex(const TriMesh::VertexHandle triMeshVert, glm::vec3 colour)
+int HeartMesh::createACMVertex(const QuadMesh::VertexHandle QuadMeshVert, glm::vec3 colour)
 {
-    int idx(createACMVertex(triMeshVert));
+    int idx(createACMVertex(QuadMeshVert));
     acm.getVertex(idx)->colour = colour;
     return idx;
 }

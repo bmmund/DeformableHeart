@@ -3,7 +3,7 @@
 
 #include <string>
 #include <OpenMesh/Core/IO/MeshIO.hh>   // must be included before a mesh type
-#include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
+#include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
 #include "acm.hpp"
 
 #include "glad/glad.h"
@@ -13,7 +13,7 @@
 #include <random>
 #include <vector>
 
-typedef OpenMesh::TriMesh_ArrayKernelT<>  TriMesh;
+typedef OpenMesh::PolyMesh_ArrayKernelT<>  QuadMesh;
 
 
 class HeartMesh
@@ -21,7 +21,7 @@ class HeartMesh
 public:
     HeartMesh(std::string filename);
     ~HeartMesh();
-    TriMesh* getTriMesh(){return &mesh;}
+    QuadMesh* getQuadMesh(){return &mesh;}
     ACM* getACM(){return &acm;}
     void updateFaceIndeces();
     void Draw();
@@ -29,7 +29,7 @@ private:
     std::mt19937 rng;
     std::uniform_int_distribution<int> gen;
     std::string fname;
-    TriMesh mesh;
+    QuadMesh mesh;
     std::vector<int> faceIndeces;
     std::vector<glm::vec3> points;
     std::vector<glm::vec3> normals;
@@ -40,13 +40,13 @@ private:
     GLuint VAO, VBO, EBO;
     void createBuffers();
     void updateBuffers();
-    void initFaceColours(TriMesh::Color c);
+    void initFaceColours(QuadMesh::Color c);
     void initializeACM();
+
     void initializeACMVerts();
-    void createCMFromEdge(const TriMesh::EdgeHandle& edge);
-    void createPhantomCMFromEdge(const TriMesh::HalfedgeHandle& heh);
-    int createACMVertex(const TriMesh::VertexHandle triMeshVert);
-    int createACMVertex(const TriMesh::VertexHandle triMeshVert, glm::vec3 colour);
+    int createACMVertex(const QuadMesh::VertexHandle triMeshVert);
+    int createACMVertex(const QuadMesh::VertexHandle triMeshVert, glm::vec3 colour);
+
     inline glm::vec3 pointToVec3(OpenMesh::Vec3f p){return glm::vec3(p[0], p[1], p[2]);}
     void getRandomRGB(int& r, int& g, int& b);
     glm::vec3 getRandomRGBF();
