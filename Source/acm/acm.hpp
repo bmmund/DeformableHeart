@@ -25,12 +25,13 @@ struct Vertex {
 
 struct CMap {
     std::vector<std::vector<VertexHandle>> cm;
+    std::array<CMapHandle, 4> boundaryCMs;
     glm::vec3 colour;
     CMapHandle idx;
     int vectorScale;
     bool isPhantom;
     CMap()
-    : idx(-1), vectorScale(1), isPhantom(false)
+    : boundaryCMs({{-1, -1, -1, -1}}), idx(-1), vectorScale(1), isPhantom(false)
     {
     }
 };
