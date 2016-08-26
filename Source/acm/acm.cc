@@ -1,6 +1,6 @@
 #include "acm.hpp"
 #include <algorithm>
-
+#include <assert.h>
 ACM::ACM()
 {
 
@@ -103,6 +103,39 @@ std::vector<std::array<VertexHandle, 3>> ACM::getCMapFaces(CMapHandle cm_idx)
     return faces;
 }
 
+void ACM::updateCMapNeighbours()
+{
+    for(auto& cm : cm_list)
+    {
+        VertexHandle vh00, vh01, vh10, vh11;
+        CMapNeighbour cm_neighbour;
+        std::vector<CMapHandle> cmhs;
+        vh00 = cm.cm[0][0];
+        vh01 = cm.cm[0][1];
+        vh10 = cm.cm[1][0];
+        vh11 = cm.cm[1][1];
+
+        // edge vh00 vh10 - bottom edge
+        cm_neighbour = getCommanCMap(cm.idx, glm::uvec2(0,0), glm::uvec2(1,0));
+        assert(cm_neighbour.n == 0);
+        cm.boundaryCMs[cm_neighbour.n] = cm_neighbour;
+
+        // edge vh10 vh11 - right edge
+        cm_neighbour = getCommanCMap(cm.idx, glm::uvec2(1,0), glm::uvec2(1,1));
+        assert(cm_neighbour.n == 1);
+        cm.boundaryCMs[cm_neighbour.n] = cm_neighbour;
+
+        // edge vh01 vh11 - top edge
+        cm_neighbour = getCommanCMap(cm.idx, glm::uvec2(0,1), glm::uvec2(1,1));
+        assert(cm_neighbour.n == 2);
+        cm.boundaryCMs[cm_neighbour.n] = cm_neighbour;
+
+        // edge vh00 vh01 - left edge
+        cm_neighbour = getCommanCMap(cm.idx, glm::uvec2(0,0), glm::uvec2(0,1));
+        assert(cm_neighbour.n == 3);
+        cm.boundaryCMs[cm_neighbour.n] = cm_neighbour;
+    }
+}
 
 void ACM::refine()
 {
@@ -185,19 +218,271 @@ void ACM::decompose()
 
 void ACM::updateVertexCMapMap(const std::vector<VertexHandle>& verts, const CMapHandle cm_idx)
 {
-    for(VertexHandle vh : verts)
+    for(const auto& vert : verts)
     {
-        updateVertexCMapMap(vh, cm_idx);
+        updateVertexCMapMap(vert, cm_idx);
     }
 }
 
-void ACM::updateVertexCMapMap(const VertexHandle& verts, const CMapHandle cm_idx)
+void ACM::updateVertexCMapMap(VertexHandle vert, const CMapHandle cm_idx)
 {
     // this may be unecessary
-    if(v_cm_map.find(verts) == v_cm_map.end()) // not found
+    if(v_cm_map.find(vert) == v_cm_map.end()) // not found
     {
         //create new entry
-        v_cm_map[verts];
+        v_cm_map[vert];
     }
-    v_cm_map[verts].push_back(cm_idx);
+    v_cm_map[vert] = cm_idx;
+}
+
+CMapNeighbour ACM::getCommanCMap(
+                              CMapHandle cmh,
+                              glm::uvec2 vh1_coords,
+                              glm::uvec2 vh2_coords
+                              )
+{
+
+    CMap* cm_ptr = getCMap(cmh);
+    VertexHandle vh1 = cm_ptr->cm.at(vh1_coords.x).at(vh1_coords.y);
+    VertexHandle vh2 = cm_ptr->cm.at(vh2_coords.x).at(vh2_coords.y);
+    VertexHandle vh1_pair = -1;
+    VertexHandle vh2_pair = -1;
+    glm::uvec2 vh1_coords_pair;
+    glm::uvec2 vh2_coords_pair;
+    CMapNeighbour cm_pair;
+    CMapHandle cmh_pair = -1;
+    for(auto & cm : cm_list)
+    {
+        if(cm.idx == cmh)
+        {
+            // skip
+            continue;
+        }
+        else
+        {
+            for(int i = 0; i < cm.cm.size(); i++)
+            {
+                for(int j = 0; j < cm.cm.size(); j++)
+                {
+                    VertexHandle vert = cm.cm.at(i).at(j);
+                    if(getVertex(vert)->point == getVertex(vh1)->point)
+                    {
+                        vh1_pair = vert;
+                        vh1_coords_pair.x = i;
+                        vh1_coords_pair.y = j;
+                    }
+                    else if(getVertex(vert)->point == getVertex(vh2)->point)
+                    {
+                        vh2_pair = vert;
+                        vh2_coords_pair.x = i;
+                        vh2_coords_pair.y = j;
+                    }
+                }
+            }
+            if(( vh1_pair != -1) && ( vh2_pair != -1))
+            {
+                cmh_pair = cm.idx;
+                break;
+            }
+            else
+            {
+                // reset vh1_pair and vh2_pair
+                vh1_pair = -1;
+                vh2_pair = -1;
+            }
+        }
+    }
+
+    NeighbourNumber n = getNeighbourNumber(vh1_coords, vh2_coords);
+    CMapOrientation o = getNeighbourCase(n, vh1_coords, vh2_coords, vh1_coords_pair, vh2_coords_pair);
+    cm_pair.n = n;
+    cm_pair.o = o;
+    cm_pair.cmh_pair = cmh_pair;
+    return cm_pair;
+}
+
+bool ACM::areEdgePointsEqual(const glm::uvec2& e1v1,
+                        const glm::uvec2& e1v2,
+                        const glm::uvec2& e2v1,
+                        const glm::uvec2& e2v2)
+{
+    if(((e1v1 == e2v1)||(e1v2 == e2v1))
+       &&
+       ((e1v1 == e2v2)||(e1v2 == e2v2))
+       )
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+NeighbourNumber ACM::getNeighbourNumber(const glm::uvec2& v1, const glm::uvec2& v2)
+{
+    // neighbour 0
+    if(areEdgePointsEqual(v1, v2, glm::uvec2(0,0), glm::uvec2(1,0)))
+    {
+        return 0;
+    }
+    // neighbour 1
+    else if(areEdgePointsEqual(v1, v2, glm::uvec2(1,0), glm::uvec2(1,1)))
+    {
+        return 1;
+    }
+    // neighbour 2
+    else if(areEdgePointsEqual(v1, v2, glm::uvec2(1,1), glm::uvec2(0,1)))
+    {
+        return 2;
+    }
+    // neighbour 3
+    else if(areEdgePointsEqual(v1, v2, glm::uvec2(0,1), glm::uvec2(0,0)))
+    {
+        return 3;
+    }
+    // invalid
+    else
+    {
+        return -1;
+    }
+}
+
+CMapOrientation ACM::getNeighbourCase(int neighbourNum,
+                          const glm::uvec2& v1,
+                          const glm::uvec2& v2,
+                          const glm::uvec2& v1_pair,
+                          const glm::uvec2& v2_pair)
+{
+    CMapOrientation orientation;
+    switch (neighbourNum) {
+        case 0:
+            orientation = getNeighbourCaseFor0(v1_pair, v2_pair);
+            break;
+
+        case 1:
+            orientation = getNeighbourCaseFor1(v1_pair, v2_pair);
+            break;
+
+        case 2:
+            orientation = getNeighbourCaseFor2(v1_pair, v2_pair);
+            break;
+
+        case 3:
+            orientation = getNeighbourCaseFor3(v1_pair, v2_pair);
+            break;
+
+        default:
+            orientation = CMapOrientation::invalid;
+            break;
+    }
+    return orientation;
+}
+
+CMapOrientation ACM::getNeighbourCaseFor0(const glm::uvec2& v1_pair,
+                              const glm::uvec2& v2_pair)
+{
+    // neighbour 0 - same i and j direction
+    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(0,1), glm::uvec2(1,1)))
+    {
+        return CMapOrientation::posi_posj;
+    }
+    // neighbour 0 - i is pos j, j is neg i
+    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(0,0), glm::uvec2(0,1)))
+    {
+        return CMapOrientation::posj_negi;
+    }
+    // neighbour 0 - i is neg i, j is neg j
+    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(1,0), glm::uvec2(0,0)))
+    {
+        return CMapOrientation::negi_negj;
+    }
+    // neighbour 0 - i is neg j, j is pos i
+    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(1,1), glm::uvec2(1,0)))
+    {
+        return CMapOrientation::negj_posi;
+    }
+    // invalid
+    return CMapOrientation::invalid;
+}
+
+CMapOrientation ACM::getNeighbourCaseFor1(const glm::uvec2& v1_pair,
+                                          const glm::uvec2& v2_pair)
+{
+    // neighbour 1 - same i and j direction
+    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(0,1), glm::uvec2(0,0)))
+    {
+        return CMapOrientation::posi_posj;
+    }
+    // neighbour 1 - i is pos j, j is neg i
+    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(0,0), glm::uvec2(1,0)))
+    {
+        return CMapOrientation::posj_negi;
+    }
+    // neighbour 1 - i is neg i, j is neg j
+    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(1,0), glm::uvec2(1,1)))
+    {
+        return CMapOrientation::negi_negj;
+    }
+    // neighbour 1 - i is neg j, j is pos i
+    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(1,1), glm::uvec2(0,1)))
+    {
+        return CMapOrientation::negj_posi;
+    }
+    // invalid
+    return CMapOrientation::invalid;
+}
+
+CMapOrientation ACM::getNeighbourCaseFor2(const glm::uvec2& v1_pair,
+                                          const glm::uvec2& v2_pair)
+{
+    // neighbour 0 - same i and j direction
+    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(0,0), glm::uvec2(1,0)))
+    {
+        return CMapOrientation::posi_posj;
+    }
+    // neighbour 0 - i is pos j, j is neg i
+    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(1,0), glm::uvec2(1,1)))
+    {
+        return CMapOrientation::posj_negi;
+    }
+    // neighbour 0 - i is neg i, j is neg j
+    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(1,1), glm::uvec2(0,1)))
+    {
+        return CMapOrientation::negi_negj;
+    }
+    // neighbour 0 - i is neg j, j is pos i
+    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(0,1), glm::uvec2(0,0)))
+    {
+        return CMapOrientation::negj_posi;
+    }
+    // invalid
+    return CMapOrientation::invalid;
+}
+
+CMapOrientation ACM::getNeighbourCaseFor3(const glm::uvec2& v1_pair,
+                                          const glm::uvec2& v2_pair)
+{
+    // neighbour 0 - same i and j direction
+    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(1,0), glm::uvec2(1,1)))
+    {
+        return CMapOrientation::posi_posj;
+    }
+    // neighbour 0 - i is pos j, j is neg i
+    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(1,1), glm::uvec2(0,1)))
+    {
+        return CMapOrientation::posj_negi;
+    }
+    // neighbour 0 - i is neg i, j is neg j
+    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(0,1), glm::uvec2(0,0)))
+    {
+        return CMapOrientation::negi_negj;
+    }
+    // neighbour 0 - i is neg j, j is pos i
+    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(0,0), glm::uvec2(1,0)))
+    {
+        return CMapOrientation::negj_posi;
+    }
+    // invalid
+    return CMapOrientation::invalid;
 }

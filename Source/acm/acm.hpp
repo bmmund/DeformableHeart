@@ -9,6 +9,16 @@
 
 typedef int VertexHandle;
 typedef int CMapHandle;
+typedef int NeighbourNumber;
+
+// what does i,j translate to
+enum class CMapOrientation{
+    posi_posj, // same
+    posj_negi,
+    negi_negj,
+    negj_posi,
+    invalid = 1
+};
 
 struct Vertex {
     glm::vec3 point;
@@ -23,14 +33,22 @@ struct Vertex {
         : point(v.point), colour(v.colour), normal(v.normal), idx(v.idx){}
 };
 
+struct CMapNeighbour {
+    CMapHandle cmh_pair;
+    NeighbourNumber n;
+    CMapOrientation o;
+    CMapNeighbour()
+    : cmh_pair(-1), n(-1), o(CMapOrientation::invalid) {}
+};
+
 struct CMap {
     std::vector<std::vector<VertexHandle>> cm;
-    std::array<CMapHandle, 4> boundaryCMs;
+    std::array<CMapNeighbour, 4> boundaryCMs;
     glm::vec3 colour;
     CMapHandle idx;
     int vectorScale;
     CMap()
-    : boundaryCMs({{-1, -1, -1, -1}}), idx(-1), vectorScale(1)
+    : idx(-1), vectorScale(1)
     {
     }
 };
@@ -55,15 +73,39 @@ public:
                         VertexHandle vh11);
     void setFaceColour(CMapHandle cm_idx, glm::vec3 colour);
     std::vector<std::array<VertexHandle, 3>> getCMapFaces(CMapHandle cm_idx);
+    void updateCMapNeighbours();
     void refine();
     void decompose();
 
 private:
     std::vector<CMap> cm_list;
     std::vector<Vertex> v_list;
-    std::map<int, std::vector<CMapHandle>> v_cm_map;
+    std::map<int, CMapHandle> v_cm_map;
     void updateVertexCMapMap(const std::vector<VertexHandle>& verts, const CMapHandle cm_idx);
-    void updateVertexCMapMap(const VertexHandle& verts, const CMapHandle cm_idx);
+    void updateVertexCMapMap(VertexHandle vert, const CMapHandle cm_idx);
+    CMapNeighbour getCommanCMap(CMapHandle cmh,
+                                  glm::uvec2 vh1_coords,
+                                  glm::uvec2 vh2_coords);
+    bool areEdgePointsEqual(const glm::uvec2& e1v1,
+                            const glm::uvec2& e1v2,
+                            const glm::uvec2& e2v1,
+                            const glm::uvec2& e2v2);
+    NeighbourNumber getNeighbourNumber(const glm::uvec2& v1, const glm::uvec2& v2);
+    CMapOrientation getNeighbourCase(
+                                     int neighbourNum,
+                                     const glm::uvec2& v1,
+                                     const glm::uvec2& v2,
+                                     const glm::uvec2& v1_pair,
+                                     const glm::uvec2& v2_pair
+                                     );
+    CMapOrientation getNeighbourCaseFor0(const glm::uvec2& v1_pair,
+                             const glm::uvec2& v2_pair);
+    CMapOrientation getNeighbourCaseFor1(const glm::uvec2& v1_pair,
+                             const glm::uvec2& v2_pair);
+    CMapOrientation getNeighbourCaseFor2(const glm::uvec2& v1_pair,
+                             const glm::uvec2& v2_pair);
+    CMapOrientation getNeighbourCaseFor3(const glm::uvec2& v1_pair,
+                             const glm::uvec2& v2_pair);
 };
 
 

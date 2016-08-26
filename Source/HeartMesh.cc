@@ -157,8 +157,8 @@ void HeartMesh::initializeACM()
         CMapHandle cm = acm.addCmap();
         acm.addVertsToCMap(cm, verts[0], verts[3], verts[1], verts[2]);
         acm.setFaceColour(cm, getRandomRGBF());
-
     }
+    acm.updateCMapNeighbours();
 }
 
 int HeartMesh::createACMVertex(const QuadMesh::VertexHandle QuadMeshVert)
