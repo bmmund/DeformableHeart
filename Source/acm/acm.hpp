@@ -10,6 +10,7 @@
 typedef int VertexHandle;
 typedef int CMapHandle;
 typedef int NeighbourNumber;
+typedef glm::uvec2 CMapIndex;
 
 // what does i,j translate to
 enum class CMapOrientation{
@@ -74,13 +75,14 @@ public:
     void setFaceColour(CMapHandle cm_idx, glm::vec3 colour);
     std::vector<std::array<VertexHandle, 3>> getCMapFaces(CMapHandle cm_idx);
     void updateCMapNeighbours();
+    CMapHandle getCMapForVertex(VertexHandle vh);
     void refine();
     void decompose();
 
 private:
     std::vector<CMap> cm_list;
     std::vector<Vertex> v_list;
-    std::map<int, CMapHandle> v_cm_map;
+    std::map<VertexHandle, CMapHandle> v_cm_map;
     void updateVertexCMapMap(const std::vector<VertexHandle>& verts, const CMapHandle cm_idx);
     void updateVertexCMapMap(VertexHandle vert, const CMapHandle cm_idx);
     CMapNeighbour getCommanCMap(CMapHandle cmh,

@@ -137,6 +137,17 @@ void ACM::updateCMapNeighbours()
     }
 }
 
+
+CMapHandle ACM::getCMapForVertex(VertexHandle vh)
+{
+    CMapHandle cm_idx = -1;
+    if(v_cm_map.find(vh) != v_cm_map.end()) // found
+    {
+        cm_idx = v_cm_map[vh];
+    }
+    return cm_idx;
+}
+
 void ACM::refine()
 {
     for(auto& cm : cm_list)
