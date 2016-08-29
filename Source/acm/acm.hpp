@@ -86,28 +86,28 @@ private:
     void updateVertexCMapMap(const std::vector<VertexHandle>& verts, const CMapHandle cm_idx);
     void updateVertexCMapMap(VertexHandle vert, const CMapHandle cm_idx);
     CMapNeighbour getCommanCMap(CMapHandle cmh,
-                                  glm::uvec2 vh1_coords,
-                                  glm::uvec2 vh2_coords);
-    bool areEdgePointsEqual(const glm::uvec2& e1v1,
-                            const glm::uvec2& e1v2,
-                            const glm::uvec2& e2v1,
-                            const glm::uvec2& e2v2);
-    NeighbourNumber getNeighbourNumber(const glm::uvec2& v1, const glm::uvec2& v2);
+                                  CMapIndex vh1_coords,
+                                  CMapIndex vh2_coords);
+    bool areEdgePointsEqual(const CMapIndex& e1v1,
+                            const CMapIndex& e1v2,
+                            const CMapIndex& e2v1,
+                            const CMapIndex& e2v2);
+    NeighbourNumber getNeighbourNumber(const CMapIndex& v1, const CMapIndex& v2);
     CMapOrientation getNeighbourCase(
                                      int neighbourNum,
-                                     const glm::uvec2& v1,
-                                     const glm::uvec2& v2,
-                                     const glm::uvec2& v1_pair,
-                                     const glm::uvec2& v2_pair
+                                     const CMapIndex& v1,
+                                     const CMapIndex& v2,
+                                     const CMapIndex& v1_pair,
+                                     const CMapIndex& v2_pair
                                      );
-    CMapOrientation getNeighbourCaseFor0(const glm::uvec2& v1_pair,
-                             const glm::uvec2& v2_pair);
-    CMapOrientation getNeighbourCaseFor1(const glm::uvec2& v1_pair,
-                             const glm::uvec2& v2_pair);
-    CMapOrientation getNeighbourCaseFor2(const glm::uvec2& v1_pair,
-                             const glm::uvec2& v2_pair);
-    CMapOrientation getNeighbourCaseFor3(const glm::uvec2& v1_pair,
-                             const glm::uvec2& v2_pair);
+    CMapOrientation getNeighbourCaseFor0(const CMapIndex& v1_pair,
+                             const CMapIndex& v2_pair);
+    CMapOrientation getNeighbourCaseFor1(const CMapIndex& v1_pair,
+                             const CMapIndex& v2_pair);
+    CMapOrientation getNeighbourCaseFor2(const CMapIndex& v1_pair,
+                             const CMapIndex& v2_pair);
+    CMapOrientation getNeighbourCaseFor3(const CMapIndex& v1_pair,
+                             const CMapIndex& v2_pair);
 };
 
 

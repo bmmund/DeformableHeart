@@ -248,8 +248,8 @@ void ACM::updateVertexCMapMap(VertexHandle vert, const CMapHandle cm_idx)
 
 CMapNeighbour ACM::getCommanCMap(
                               CMapHandle cmh,
-                              glm::uvec2 vh1_coords,
-                              glm::uvec2 vh2_coords
+                              CMapIndex vh1_coords,
+                              CMapIndex vh2_coords
                               )
 {
 
@@ -258,8 +258,8 @@ CMapNeighbour ACM::getCommanCMap(
     VertexHandle vh2 = cm_ptr->cm.at(vh2_coords.x).at(vh2_coords.y);
     VertexHandle vh1_pair = -1;
     VertexHandle vh2_pair = -1;
-    glm::uvec2 vh1_coords_pair;
-    glm::uvec2 vh2_coords_pair;
+    CMapIndex vh1_coords_pair;
+    CMapIndex vh2_coords_pair;
     CMapNeighbour cm_pair;
     CMapHandle cmh_pair = -1;
     for(auto & cm : cm_list)
@@ -312,10 +312,10 @@ CMapNeighbour ACM::getCommanCMap(
     return cm_pair;
 }
 
-bool ACM::areEdgePointsEqual(const glm::uvec2& e1v1,
-                        const glm::uvec2& e1v2,
-                        const glm::uvec2& e2v1,
-                        const glm::uvec2& e2v2)
+bool ACM::areEdgePointsEqual(const CMapIndex& e1v1,
+                        const CMapIndex& e1v2,
+                        const CMapIndex& e2v1,
+                        const CMapIndex& e2v2)
 {
     if(((e1v1 == e2v1)||(e1v2 == e2v1))
        &&
@@ -330,25 +330,25 @@ bool ACM::areEdgePointsEqual(const glm::uvec2& e1v1,
     }
 }
 
-NeighbourNumber ACM::getNeighbourNumber(const glm::uvec2& v1, const glm::uvec2& v2)
+NeighbourNumber ACM::getNeighbourNumber(const CMapIndex& v1, const CMapIndex& v2)
 {
     // neighbour 0
-    if(areEdgePointsEqual(v1, v2, glm::uvec2(0,0), glm::uvec2(1,0)))
+    if(areEdgePointsEqual(v1, v2, CMapIndex(0,0), CMapIndex(1,0)))
     {
         return 0;
     }
     // neighbour 1
-    else if(areEdgePointsEqual(v1, v2, glm::uvec2(1,0), glm::uvec2(1,1)))
+    else if(areEdgePointsEqual(v1, v2, CMapIndex(1,0), CMapIndex(1,1)))
     {
         return 1;
     }
     // neighbour 2
-    else if(areEdgePointsEqual(v1, v2, glm::uvec2(1,1), glm::uvec2(0,1)))
+    else if(areEdgePointsEqual(v1, v2, CMapIndex(1,1), CMapIndex(0,1)))
     {
         return 2;
     }
     // neighbour 3
-    else if(areEdgePointsEqual(v1, v2, glm::uvec2(0,1), glm::uvec2(0,0)))
+    else if(areEdgePointsEqual(v1, v2, CMapIndex(0,1), CMapIndex(0,0)))
     {
         return 3;
     }
@@ -360,10 +360,10 @@ NeighbourNumber ACM::getNeighbourNumber(const glm::uvec2& v1, const glm::uvec2& 
 }
 
 CMapOrientation ACM::getNeighbourCase(int neighbourNum,
-                          const glm::uvec2& v1,
-                          const glm::uvec2& v2,
-                          const glm::uvec2& v1_pair,
-                          const glm::uvec2& v2_pair)
+                          const CMapIndex& v1,
+                          const CMapIndex& v2,
+                          const CMapIndex& v1_pair,
+                          const CMapIndex& v2_pair)
 {
     CMapOrientation orientation;
     switch (neighbourNum) {
@@ -390,26 +390,26 @@ CMapOrientation ACM::getNeighbourCase(int neighbourNum,
     return orientation;
 }
 
-CMapOrientation ACM::getNeighbourCaseFor0(const glm::uvec2& v1_pair,
-                              const glm::uvec2& v2_pair)
+CMapOrientation ACM::getNeighbourCaseFor0(const CMapIndex& v1_pair,
+                              const CMapIndex& v2_pair)
 {
     // neighbour 0 - same i and j direction
-    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(0,1), glm::uvec2(1,1)))
+    if(areEdgePointsEqual(v1_pair, v2_pair, CMapIndex(0,1), CMapIndex(1,1)))
     {
         return CMapOrientation::posi_posj;
     }
     // neighbour 0 - i is pos j, j is neg i
-    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(0,0), glm::uvec2(0,1)))
+    if(areEdgePointsEqual(v1_pair, v2_pair, CMapIndex(0,0), CMapIndex(0,1)))
     {
         return CMapOrientation::posj_negi;
     }
     // neighbour 0 - i is neg i, j is neg j
-    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(1,0), glm::uvec2(0,0)))
+    if(areEdgePointsEqual(v1_pair, v2_pair, CMapIndex(1,0), CMapIndex(0,0)))
     {
         return CMapOrientation::negi_negj;
     }
     // neighbour 0 - i is neg j, j is pos i
-    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(1,1), glm::uvec2(1,0)))
+    if(areEdgePointsEqual(v1_pair, v2_pair, CMapIndex(1,1), CMapIndex(1,0)))
     {
         return CMapOrientation::negj_posi;
     }
@@ -417,26 +417,26 @@ CMapOrientation ACM::getNeighbourCaseFor0(const glm::uvec2& v1_pair,
     return CMapOrientation::invalid;
 }
 
-CMapOrientation ACM::getNeighbourCaseFor1(const glm::uvec2& v1_pair,
-                                          const glm::uvec2& v2_pair)
+CMapOrientation ACM::getNeighbourCaseFor1(const CMapIndex& v1_pair,
+                                          const CMapIndex& v2_pair)
 {
     // neighbour 1 - same i and j direction
-    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(0,1), glm::uvec2(0,0)))
+    if(areEdgePointsEqual(v1_pair, v2_pair, CMapIndex(0,1), CMapIndex(0,0)))
     {
         return CMapOrientation::posi_posj;
     }
     // neighbour 1 - i is pos j, j is neg i
-    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(0,0), glm::uvec2(1,0)))
+    if(areEdgePointsEqual(v1_pair, v2_pair, CMapIndex(0,0), CMapIndex(1,0)))
     {
         return CMapOrientation::posj_negi;
     }
     // neighbour 1 - i is neg i, j is neg j
-    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(1,0), glm::uvec2(1,1)))
+    if(areEdgePointsEqual(v1_pair, v2_pair, CMapIndex(1,0), CMapIndex(1,1)))
     {
         return CMapOrientation::negi_negj;
     }
     // neighbour 1 - i is neg j, j is pos i
-    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(1,1), glm::uvec2(0,1)))
+    if(areEdgePointsEqual(v1_pair, v2_pair, CMapIndex(1,1), CMapIndex(0,1)))
     {
         return CMapOrientation::negj_posi;
     }
@@ -444,26 +444,26 @@ CMapOrientation ACM::getNeighbourCaseFor1(const glm::uvec2& v1_pair,
     return CMapOrientation::invalid;
 }
 
-CMapOrientation ACM::getNeighbourCaseFor2(const glm::uvec2& v1_pair,
-                                          const glm::uvec2& v2_pair)
+CMapOrientation ACM::getNeighbourCaseFor2(const CMapIndex& v1_pair,
+                                          const CMapIndex& v2_pair)
 {
     // neighbour 0 - same i and j direction
-    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(0,0), glm::uvec2(1,0)))
+    if(areEdgePointsEqual(v1_pair, v2_pair, CMapIndex(0,0), CMapIndex(1,0)))
     {
         return CMapOrientation::posi_posj;
     }
     // neighbour 0 - i is pos j, j is neg i
-    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(1,0), glm::uvec2(1,1)))
+    if(areEdgePointsEqual(v1_pair, v2_pair, CMapIndex(1,0), CMapIndex(1,1)))
     {
         return CMapOrientation::posj_negi;
     }
     // neighbour 0 - i is neg i, j is neg j
-    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(1,1), glm::uvec2(0,1)))
+    if(areEdgePointsEqual(v1_pair, v2_pair, CMapIndex(1,1), CMapIndex(0,1)))
     {
         return CMapOrientation::negi_negj;
     }
     // neighbour 0 - i is neg j, j is pos i
-    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(0,1), glm::uvec2(0,0)))
+    if(areEdgePointsEqual(v1_pair, v2_pair, CMapIndex(0,1), CMapIndex(0,0)))
     {
         return CMapOrientation::negj_posi;
     }
@@ -471,26 +471,26 @@ CMapOrientation ACM::getNeighbourCaseFor2(const glm::uvec2& v1_pair,
     return CMapOrientation::invalid;
 }
 
-CMapOrientation ACM::getNeighbourCaseFor3(const glm::uvec2& v1_pair,
-                                          const glm::uvec2& v2_pair)
+CMapOrientation ACM::getNeighbourCaseFor3(const CMapIndex& v1_pair,
+                                          const CMapIndex& v2_pair)
 {
     // neighbour 0 - same i and j direction
-    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(1,0), glm::uvec2(1,1)))
+    if(areEdgePointsEqual(v1_pair, v2_pair, CMapIndex(1,0), CMapIndex(1,1)))
     {
         return CMapOrientation::posi_posj;
     }
     // neighbour 0 - i is pos j, j is neg i
-    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(1,1), glm::uvec2(0,1)))
+    if(areEdgePointsEqual(v1_pair, v2_pair, CMapIndex(1,1), CMapIndex(0,1)))
     {
         return CMapOrientation::posj_negi;
     }
     // neighbour 0 - i is neg i, j is neg j
-    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(0,1), glm::uvec2(0,0)))
+    if(areEdgePointsEqual(v1_pair, v2_pair, CMapIndex(0,1), CMapIndex(0,0)))
     {
         return CMapOrientation::negi_negj;
     }
     // neighbour 0 - i is neg j, j is pos i
-    if(areEdgePointsEqual(v1_pair, v2_pair, glm::uvec2(0,0), glm::uvec2(1,0)))
+    if(areEdgePointsEqual(v1_pair, v2_pair, CMapIndex(0,0), CMapIndex(1,0)))
     {
         return CMapOrientation::negj_posi;
     }
