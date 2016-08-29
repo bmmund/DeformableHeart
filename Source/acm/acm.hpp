@@ -42,9 +42,25 @@ struct CMapNeighbour {
     : cmh_pair(-1), n(-1), o(CMapOrientation::invalid) {}
 };
 
+struct CMapCornerNeighbour {
+    CMapHandle cmh_pair;
+    CMapIndex location;
+    CMapCornerNeighbour()
+    : cmh_pair(-1){}
+    bool operator==(const CMapCornerNeighbour& other)
+    {
+        return this->location == other.location;
+    }
+    bool operator!=(const CMapCornerNeighbour& other)
+    {
+        return !(*this == other);
+    }
+};
+
 struct CMap {
     std::vector<std::vector<VertexHandle>> cm;
     std::array<CMapNeighbour, 4> boundaryCMs;
+    std::array<std::vector<CMapCornerNeighbour>, 4> cornerVerts;
     glm::vec3 colour;
     CMapHandle idx;
     int vectorScale;
@@ -75,6 +91,7 @@ public:
     void setFaceColour(CMapHandle cm_idx, glm::vec3 colour);
     std::vector<std::array<VertexHandle, 3>> getCMapFaces(CMapHandle cm_idx);
     void updateCMapNeighbours();
+    void updateCMapCorners();
     CMapHandle getCMapForVertex(VertexHandle vh);
     void refine();
     void decompose();
@@ -108,6 +125,7 @@ private:
                              const CMapIndex& v2_pair);
     CMapOrientation getNeighbourCaseFor3(const CMapIndex& v1_pair,
                              const CMapIndex& v2_pair);
+    std::vector<CMapCornerNeighbour> findCMapCornerNeighbours(VertexHandle vh);
 };
 
 

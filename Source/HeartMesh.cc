@@ -159,6 +159,7 @@ void HeartMesh::initializeACM()
         acm.setFaceColour(cm, getRandomRGBF());
     }
     acm.updateCMapNeighbours();
+    acm.updateCMapCorners();
 }
 
 int HeartMesh::createACMVertex(const QuadMesh::VertexHandle QuadMeshVert)

@@ -116,27 +116,43 @@ void ACM::updateCMapNeighbours()
         vh11 = cm.cm[1][1];
 
         // edge vh00 vh10 - bottom edge
-        cm_neighbour = getCommanCMap(cm.idx, glm::uvec2(0,0), glm::uvec2(1,0));
+        cm_neighbour = getCommanCMap(cm.idx, CMapIndex(0,0), CMapIndex(1,0));
         assert(cm_neighbour.n == 0);
         cm.boundaryCMs[cm_neighbour.n] = cm_neighbour;
 
         // edge vh10 vh11 - right edge
-        cm_neighbour = getCommanCMap(cm.idx, glm::uvec2(1,0), glm::uvec2(1,1));
+        cm_neighbour = getCommanCMap(cm.idx, CMapIndex(1,0), CMapIndex(1,1));
         assert(cm_neighbour.n == 1);
         cm.boundaryCMs[cm_neighbour.n] = cm_neighbour;
 
         // edge vh01 vh11 - top edge
-        cm_neighbour = getCommanCMap(cm.idx, glm::uvec2(0,1), glm::uvec2(1,1));
+        cm_neighbour = getCommanCMap(cm.idx, CMapIndex(0,1), CMapIndex(1,1));
         assert(cm_neighbour.n == 2);
         cm.boundaryCMs[cm_neighbour.n] = cm_neighbour;
 
         // edge vh00 vh01 - left edge
-        cm_neighbour = getCommanCMap(cm.idx, glm::uvec2(0,0), glm::uvec2(0,1));
+        cm_neighbour = getCommanCMap(cm.idx, CMapIndex(0,0), CMapIndex(0,1));
         assert(cm_neighbour.n == 3);
         cm.boundaryCMs[cm_neighbour.n] = cm_neighbour;
     }
 }
 
+void ACM::updateCMapCorners()
+{
+    // for each cmap
+    for(auto& cm : cm_list)
+    {
+        // for each corner vertex (ccw starting at 0,0)
+        // (0,0) - 0
+        cm.cornerVerts[0] = findCMapCornerNeighbours(cm.cm.at(0).at(0));
+        // (1,0) - 1
+        cm.cornerVerts[1] = findCMapCornerNeighbours(cm.cm.at(1).at(0));
+        // (1,1) - 2
+        cm.cornerVerts[2] = findCMapCornerNeighbours(cm.cm.at(1).at(1));
+        // (0,1) - 3
+        cm.cornerVerts[3] = findCMapCornerNeighbours(cm.cm.at(0).at(1));
+    }
+}
 
 CMapHandle ACM::getCMapForVertex(VertexHandle vh)
 {
@@ -496,4 +512,95 @@ CMapOrientation ACM::getNeighbourCaseFor3(const CMapIndex& v1_pair,
     }
     // invalid
     return CMapOrientation::invalid;
+}
+
+std::vector<CMapCornerNeighbour> ACM::findCMapCornerNeighbours(VertexHandle vh)
+{
+    // the cmap to ignore
+    CMapHandle cmh_ignore = getCMapForVertex(vh);
+    std::vector<CMapCornerNeighbour> cornerNeighbours;
+    assert(cmh_ignore != -1);
+    // look for all cms with the same vertex
+    for(auto& cm : cm_list)
+    {
+        if(cm.idx == cmh_ignore)
+        {
+            continue;
+        }
+        CMapCornerNeighbour temp;
+        temp.cmh_pair = cm.idx;
+        // (0,0) || (1,1)
+        if((getVertex(cm.cm.at(0).at(0))->point == getVertex(vh)->point)
+            ||(getVertex(cm.cm.at(1).at(1))->point == getVertex(vh)->point)
+           )
+        {
+            // neighbhours at 0,1 and 1,0
+            temp.location = CMapIndex(0,1);
+            cornerNeighbours.push_back(temp);
+            temp.location = CMapIndex(1,0);
+            cornerNeighbours.push_back(temp);
+        }
+        // (1,0)
+        else if(getVertex(cm.cm.at(1).at(0))->point == getVertex(vh)->point)
+        {
+            // neighbhours at 0,0, 1,1 and 0,1
+            temp.location = CMapIndex(0,0);
+            cornerNeighbours.push_back(temp);
+            temp.location = CMapIndex(1,1);
+            cornerNeighbours.push_back(temp);
+            temp.location = CMapIndex(0,1);
+            cornerNeighbours.push_back(temp);
+        }
+        // (0,1)
+        else if(getVertex(cm.cm.at(0).at(1))->point == getVertex(vh)->point)
+        {
+            // neighbhours at 0,0, 1,1 and 1,0
+            temp.location = CMapIndex(0,0);
+            cornerNeighbours.push_back(temp);
+            temp.location = CMapIndex(1,1);
+            cornerNeighbours.push_back(temp);
+            temp.location = CMapIndex(1,0);
+            cornerNeighbours.push_back(temp);
+        }
+        else
+        {
+        }
+    }
+    // remove duplicates
+    std::vector<CMapCornerNeighbour>::iterator neighbour;
+    for(neighbour = cornerNeighbours.begin();
+         neighbour != cornerNeighbours.end();
+         neighbour++)
+        {
+            CMap* cm1;
+            VertexHandle vh1;
+            Vertex* v1;
+            CMapIndex v1_index = neighbour->location;
+            cm1 = getCMap(neighbour->cmh_pair);
+            vh1 = cm1->cm.at(v1_index.x).at(v1_index.y);
+            v1 = getVertex(vh1);
+
+            std::vector<CMapCornerNeighbour>::iterator compare;
+            // check to see if there are any equal quantities
+            for(compare = neighbour+1;
+                compare != cornerNeighbours.end();)
+            {
+                CMap* cm2;
+                VertexHandle vh2;
+                Vertex* v2;
+                CMapIndex v2_index = compare->location;
+                cm2 = getCMap(compare->cmh_pair);
+                vh2 = cm2->cm.at(v2_index.x).at(v2_index.y);
+                v2 = getVertex(vh2);
+                if(v1->point == v2->point)
+                {
+                    compare = cornerNeighbours.erase(compare);
+                }
+                else
+                {
+                    compare++;
+                }
+            }
+        }
+    return cornerNeighbours;
 }
