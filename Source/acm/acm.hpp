@@ -43,10 +43,10 @@ struct CMapNeighbour {
 };
 
 struct CMapCornerNeighbour {
-    CMapHandle cmh_pair;
+    CMapHandle cmh;
     CMapIndex location;
     CMapCornerNeighbour()
-    : cmh_pair(-1){}
+    : cmh(-1){}
     bool operator==(const CMapCornerNeighbour& other)
     {
         return this->location == other.location;
@@ -95,6 +95,7 @@ public:
     CMapHandle getCMapForVertex(VertexHandle vh);
     void refine();
     void decompose();
+    std::vector<VertexHandle> getNeighbourhood(VertexHandle vh);
 
 private:
     std::vector<CMap> cm_list;
@@ -126,6 +127,21 @@ private:
     CMapOrientation getNeighbourCaseFor3(const CMapIndex& v1_pair,
                              const CMapIndex& v2_pair);
     std::vector<CMapCornerNeighbour> findCMapCornerNeighbours(VertexHandle vh);
+    bool isCornerIndex(VertexHandle vh);
+    std::vector<VertexHandle> getCornerNeighbours(CMapHandle cmh,
+                                                  CMapIndex corner);
+    std::vector<VertexHandle> getEdgeNeighbours(CMapHandle cmh,
+                                                CMapIndex edgeVert);
+    std::vector<VertexHandle> getInternalNeighbours(CMapHandle cmh,
+                                                    CMapIndex intVert);
+    std::vector<VertexHandle> getNeighboursForCase0(CMapHandle cmh,
+                                                    CMapIndex edgeVert);
+    std::vector<VertexHandle> getNeighboursForCase1(CMapHandle cmh,
+                                                    CMapIndex edgeVert);
+    std::vector<VertexHandle> getNeighboursForCase2(CMapHandle cmh,
+                                                    CMapIndex edgeVert);
+    std::vector<VertexHandle> getNeighboursForCase3(CMapHandle cmh,
+                                                    CMapIndex edgeVert);
 };
 
 
