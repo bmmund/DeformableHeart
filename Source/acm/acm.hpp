@@ -11,7 +11,7 @@ typedef int VertexHandle;
 typedef int CMapHandle;
 typedef int NeighbourNumber;
 typedef glm::uvec2 CMapIndex;
-
+typedef glm::ivec2 CMapVector;
 // what does i,j translate to
 enum class CMapOrientation{
     posi_posj, // same
