@@ -92,7 +92,7 @@ void Loop::setVertexVertexPosition(ACM* acm, CMap* cm, CMapIndex index)
     //                details = ((8.0f*alpha) / 5.0f) * details;
 }
 
-void Loop::setEdgeVertexPositions(ACM *acm)
+void Loop::setEdgeVertexPositions(ACM* acm, CMap* cm, CMapIndex index)
 {
     ACM::CMapIter c_it;
     // for each connectivity map
