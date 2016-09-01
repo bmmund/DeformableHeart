@@ -32,6 +32,45 @@ struct Vertex {
         : point(p), colour(c), normal(c), idx(-1){}
     Vertex(const Vertex& v)
         : point(v.point), colour(v.colour), normal(v.normal), idx(v.idx){}
+    Vertex& operator=(Vertex rhs)
+    {
+        point = rhs.point;
+        normal = rhs.normal;
+        colour = rhs.colour;
+        return *this;
+    }
+    Vertex& operator+=(const Vertex& rhs)
+    {
+        point += rhs.point;
+        normal += rhs.normal;
+        colour += rhs.colour;
+        return *this;
+    }
+    Vertex& operator*=(const float scale)
+    {
+        point *= scale;
+        normal *= scale;
+        colour *= scale;
+        return *this;
+    }
+
+    friend Vertex operator+(Vertex lhs, const Vertex& rhs)
+    {
+        lhs += rhs;
+        return lhs;
+    }
+
+    friend Vertex operator*(Vertex lhs, const float& scale)
+    {
+        lhs *= scale;
+        return lhs;
+    }
+
+    friend Vertex operator*(const float& scale, Vertex rhs)
+    {
+        rhs *= scale;
+        return rhs;
+    }
 };
 
 struct CMapNeighbour {
