@@ -231,6 +231,7 @@ void ACM::refine()
                 vnew->normal = (v1->normal + v2->normal) / 2.0f;
             }
         }
+        cm.vectorScale *=2;
     }
 }
 
@@ -684,7 +685,9 @@ std::vector<VertexHandle> ACM::getCornerNeighbours(CMapHandle cmh, CMapIndex cor
     for(const auto& neighbour : neighbours)
     {
         CMap* neighbour_cm = getCMap(neighbour.cmh);
-        VertexHandle vert = neighbour_cm->cm.at(neighbour.location.x).at(neighbour.location.y);
+        CMapIndex loc(neighbour.location);
+        loc *= neighbour_cm->vectorScale;
+        VertexHandle vert = neighbour_cm->cm.at(loc.x).at(loc.y);
         cornerNeighbours.push_back(vert);
     }
 
