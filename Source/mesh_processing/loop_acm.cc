@@ -94,18 +94,10 @@ void Loop::setVertexVertexPosition(ACM* acm, CMap* cm, CMapIndex index)
 
 void Loop::setEdgeVertexPositions(ACM* acm, CMap* cm, CMapIndex index)
 {
-    ACM::CMapIter c_it;
-    // for each connectivity map
-    for (c_it = acm->cm_begin(); c_it != acm->cm_end(); c_it++)
-    {
-        // for each odd vertex
-        for (int i = 1; i < c_it->cm.size(); i += 2)
-        {
-            for (int j = 0; j < c_it->cm.at(i).size(); j += 2)
-            {
-            }
-        }
-    }
+	// do all odd verts on boundaries
+
+	// do remaining odd verts
+
 //    TriMesh::EdgeIter edgeIter;
 //    TriMesh::VertexHandle vertex;
 //    TriMesh::HalfedgeHandle halfEdge;
