@@ -160,13 +160,6 @@ void HeartMesh::initializeACM()
     }
     acm.updateCMapNeighbours();
     acm.updateCMapCorners();
-    std::vector<VertexHandle> verts = acm.getNeighbourhood(0);
-    printf("vert 0 has neighbours:\n");
-    for(const auto& vert : verts)
-    {
-        printf("\tvert %d\n", vert);
-    }
-
 }
 
 int HeartMesh::createACMVertex(const QuadMesh::VertexHandle QuadMeshVert)

@@ -72,12 +72,16 @@ struct CMap {
 
 class ACM {
 public:
+    typedef std::vector<Vertex>::iterator VertexIter;
+    typedef std::vector<CMap>::iterator CMapIter;
     ACM();
     std::vector<CMap>& connectivityMaps();
     void add(const CMap& cm);
     void clear();
-    std::vector<Vertex>::iterator v_begin(){return v_list.begin();}
-    std::vector<Vertex>::iterator v_end(){return v_list.end();}
+    VertexIter v_begin(){return v_list.begin();}
+    VertexIter v_end(){return v_list.end();}
+    CMapIter cm_begin(){return cm_list.begin();}
+    CMapIter cm_end(){return cm_list.end();}
     CMapHandle addCmap();
     VertexHandle addVertex();
     VertexHandle addVertex(Vertex new_vertex);
@@ -127,7 +131,6 @@ private:
     CMapOrientation getNeighbourCaseFor3(const CMapIndex& v1_pair,
                              const CMapIndex& v2_pair);
     std::vector<CMapCornerNeighbour> findCMapCornerNeighbours(VertexHandle vh);
-    bool isCornerIndex(VertexHandle vh);
     std::vector<VertexHandle> getCornerNeighbours(CMapHandle cmh,
                                                   CMapIndex corner);
     std::vector<VertexHandle> getEdgeNeighbours(CMapHandle cmh,

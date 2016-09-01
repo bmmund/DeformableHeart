@@ -646,17 +646,6 @@ std::vector<CMapCornerNeighbour> ACM::findCMapCornerNeighbours(VertexHandle vh)
     return cornerNeighbours;
 }
 
-bool ACM::isCornerIndex(VertexHandle vh)
-{
-    CMap* cm;
-    cm = getCMap(getCMapForVertex(vh));
-    if(cm->cm.at(0).at(0) == vh)
-    {
-
-    }
-    return true;
-}
-
 std::vector<VertexHandle> ACM::getCornerNeighbours(CMapHandle cmh, CMapIndex corner)
 {
     std::vector<VertexHandle> cornerNeighbours;
