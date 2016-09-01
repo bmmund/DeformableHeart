@@ -8,5 +8,7 @@ namespace Utilities {
     glm::vec2 normalized_device_cordinates(const glm::vec2 &pixelCords, int width, int height);
     float clamp(float value, float lowerBound, float upperBound);
     std::string readFileToString(const char * path);
+	bool isEven(int number);
+	bool isOdd(int number);
 }
 #endif /* __UTILITIES_HPP */

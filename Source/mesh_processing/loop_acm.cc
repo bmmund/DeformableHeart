@@ -1,5 +1,5 @@
 #include "loop_acm.hpp"
-
+#include "utilities.hpp"
 Loop::Loop()
 {
     preComputeWeights(6);
@@ -14,10 +14,10 @@ void Loop::subdivide(ACM* acm)
 {
     // prepare enough space
     acm->refine();
-    // find vertex-vertex positions (even)
-    setVertexVertexPositions(acm);
+    // find vertex positions (even and odd per cm)
+	setNewVertexPositions(acm);
 
-    setEdgeVertexPositions(acm);
+    //setEdgeVertexPositions(acm);
 
     updateValues(acm);
     ACM::VertexIter v_it = acm->v_begin();
@@ -37,50 +37,75 @@ void Loop::decompose(ACM* acm)
     acm->decompose();
 }
 
-void Loop::setVertexVertexPositions(ACM* acm)
+void Loop::setNewVertexPositions(ACM * acm)
 {
     ACM::CMapIter c_it;
     // for each connectivity map
-    for(c_it = acm->cm_begin(); c_it != acm->cm_end(); c_it++)
+    for (c_it = acm->cm_begin(); c_it != acm->cm_end(); c_it++)
     {
         // for each even vertex
-        for(int i = 0; i < c_it->cm.size(); i+=2)
+        for (int i = 0; i < c_it->cm.size(); i++)
         {
-            for(int j = 0; j < c_it->cm.at(i).size(); j+=2)
+            for (int j = 0; j < c_it->cm.at(i).size(); j++)
             {
-                // determine new location
-                VertexHandle vh = c_it->cm.at(i).at(j);
-                std::vector<VertexHandle> neighbours;
-                neighbours = acm->getNeighbourhood(vh);
-                int valence = neighbours.size();
-                float alpha = getWeight(valence);
-
-                // sum up neighbours
-                    // alpha * SUM(Vj)
-                Vertex sum;
-                for(auto& neighbour : neighbours)
+                CMapIndex index(i, j);
+                if (Utilities::isEven(i) && Utilities::isEven(j))
                 {
-                    sum += *(acm->getVertex(neighbour));
+                    setVertexVertexPosition(acm, &(*c_it), index);
                 }
-                sum = alpha * sum;
-
-                // add vertex contribution
-                sum += (1 - (valence*alpha) ) * (*acm->getVertex(vh));
-                changes[vh] = sum;
-//                pos += (1 - (valence*alpha) ) * mesh->point(*vertIter);
-//                for (TriMesh::VertexEdgeIter ve_it = mesh->ve_iter(*vertIter);
-//                     ve_it.is_valid(); ++ve_it)
-//                {
-//                    details += mesh->property(detailsProp, *ve_it);
-//                }
-//                details = ((8.0f*alpha) / 5.0f) * details;
+                else
+                {
+                    //setEdgeVertexPositions()
+                }
             }
         }
     }
 }
 
+void Loop::setVertexVertexPosition(ACM* acm, CMap* cm, CMapIndex index)
+{
+    // determine new location
+    VertexHandle vh = cm->cm.at(index.x).at(index.y);
+    std::vector<VertexHandle> neighbours;
+    neighbours = acm->getNeighbourhood(vh);
+    int valence = neighbours.size();
+    float alpha = getWeight(valence);
+
+    // sum up neighbours
+    // alpha * SUM(Vj)
+    Vertex sum;
+    for (auto& neighbour : neighbours)
+    {
+        sum += *(acm->getVertex(neighbour));
+    }
+    sum = alpha * sum;
+
+    // add vertex contribution
+    sum += (1 - (valence*alpha)) * (*acm->getVertex(vh));
+    changes[vh] = sum;
+    //                pos += (1 - (valence*alpha) ) * mesh->point(*vertIter);
+    //                for (TriMesh::VertexEdgeIter ve_it = mesh->ve_iter(*vertIter);
+    //                     ve_it.is_valid(); ++ve_it)
+    //                {
+    //                    details += mesh->property(detailsProp, *ve_it);
+    //                }
+    //                details = ((8.0f*alpha) / 5.0f) * details;
+}
+
 void Loop::setEdgeVertexPositions(ACM *acm)
 {
+    ACM::CMapIter c_it;
+    // for each connectivity map
+    for (c_it = acm->cm_begin(); c_it != acm->cm_end(); c_it++)
+    {
+        // for each odd vertex
+        for (int i = 1; i < c_it->cm.size(); i += 2)
+        {
+            for (int j = 0; j < c_it->cm.at(i).size(); j += 2)
+            {
+            }
+        }
+    }
 //    TriMesh::EdgeIter edgeIter;
 //    TriMesh::VertexHandle vertex;
 //    TriMesh::HalfedgeHandle halfEdge;

@@ -9,6 +9,7 @@ set(MESH_PROCESSING_LIB ${LIB_NAME} PARENT_SCOPE)
 #########################################################
 list(APPEND LIBRARIES
     "${OPENMESH_LIBRARIES}"
+    "${UTILITIES_LIB}"
     "${ACM_LIB}"
 )
 

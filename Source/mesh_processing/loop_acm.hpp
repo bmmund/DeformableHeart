@@ -15,7 +15,8 @@ public:
 private:
     std::map<int, float> weights; // valence, weight
     std::map<VertexHandle, Vertex> changes;
-    void setVertexVertexPositions(ACM* acm);
+    void setNewVertexPositions(ACM* acm);
+    void setVertexVertexPosition(ACM* acm, CMap* cm, CMapIndex index);
     void setEdgeVertexPositions(ACM* acm);
 
     float getWeight(int valence);

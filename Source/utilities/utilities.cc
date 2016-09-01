@@ -67,3 +67,16 @@ std::string Utilities::readFileToString(const char * path)
     }
     return output;
 }
+
+bool Utilities::isEven(int number)
+{
+    if (number % 2 == 0)
+        return true;
+    else
+        return false;
+}
+
+bool Utilities::isOdd(int number)
+{
+    return !isEven(number);
+}
