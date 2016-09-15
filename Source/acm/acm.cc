@@ -204,34 +204,19 @@ void ACM::refine()
                 }
             }
         }
-
-        // fill new verts with average values
-        for(int i = 0; i < cm.cm.size(); i+=2)
-        {
-            for(int j = 1; j < cm.cm.at(i).size(); j+=2)
-            {
-                Vertex* v1 = getVertex(cm.cm.at(i).at(j-1));
-                Vertex* v2 = getVertex(cm.cm.at(i).at(j+1));
-                Vertex* vnew = getVertex(cm.cm.at(i).at(j));
-                vnew->point = (v1->point + v2->point) / 2.0f;
-                vnew->colour = (v1->colour + v2->colour) / 2.0f;
-                vnew->normal = (v1->normal + v2->normal) / 2.0f;
-            }
-        }
-
-        for(int i = 1; i < cm.cm.size(); i+=2)
-        {
-            for(int j = 0; j < cm.cm.size(); j++)
-            {
-                Vertex* v1 = getVertex(cm.cm.at(i-1).at(j));
-                Vertex* v2 = getVertex(cm.cm.at(i+1).at(j));
-                Vertex* vnew = getVertex(cm.cm.at(i).at(j));
-                vnew->point = (v1->point + v2->point) / 2.0f;
-                vnew->colour = (v1->colour + v2->colour) / 2.0f;
-                vnew->normal = (v1->normal + v2->normal) / 2.0f;
-            }
-        }
         cm.vectorScale *=2;
+    }
+}
+
+void ACM::reduceVectorScale()
+{
+    for(auto& cm : cm_list)
+    {
+        if(cm.vectorScale > 1)
+        {
+            cm.vectorScale = std::max((cm.vectorScale / 2), 1);
+            continue;
+        }
     }
 }
 
@@ -269,8 +254,7 @@ std::vector<VertexHandle> ACM::getNeighbourhood(VertexHandle vh)
     CMapIndex v3loc(0,max); // 0,max
 
     // on corner
-    if((v0loc == location) || (v1loc == location)
-       || (v2loc == location) || (v3loc == location))
+    if(isIndexOnCorner(cm->idx, location))
     {
         neighbours = getCornerNeighbours(cm->idx, location);
     }
@@ -279,7 +263,7 @@ std::vector<VertexHandle> ACM::getNeighbourhood(VertexHandle vh)
             || (location.x == max) || (location.y == max)
             )
     {
-        neighbours = getEdgeNeighbours(cm->idx, location);
+        neighbours = getBoundaryNeighbours(cm->idx, location);
     }
     // completely internal
     else
@@ -287,6 +271,130 @@ std::vector<VertexHandle> ACM::getNeighbourhood(VertexHandle vh)
         neighbours = getInternalNeighbours(cm->idx, location);
     }
     return neighbours;
+}
+
+std::array<VertexHandle, 4> ACM::getEdgeNeighbours(CMapHandle cmh,
+                                                CMapIndex v1,
+                                                CMapIndex v2)
+{
+    std::array<VertexHandle, 4> edgeNeighbours;
+    CMap* cm = getCMap(cmh);
+    CMap* cm_other;
+    int vs, vs_other;
+    vs = cm->vectorScale;
+
+    edgeNeighbours.at(0) = cm->cm.at(v1.x).at(v1.y);
+    edgeNeighbours.at(1) = cm->cm.at(v2.x).at(v2.y);
+
+    // two remaining verts are in the triangles that share the edge v1v2
+
+    // on boundary edge
+    if(isIndexOnBoarder(cmh, v1, v2))
+    {
+        NeighbourNumber n = getNeighbourNumber(cmh, v1, v2);
+        cm_other = getCMap(cm->boundaryCMs.at(n).cmh_pair);
+        vs_other = cm_other->vectorScale;
+        switch (n) {
+            case 0:
+                edgeNeighbours.at(2) = cm->cm.at(0).at(vs);
+                switch (cm->boundaryCMs.at(n).o) {
+                    case CMapOrientation::posi_posj:
+                    case CMapOrientation::posj_negi:
+                        edgeNeighbours.at(3) = cm_other->cm.at(vs_other).at(0);
+                        break;
+                    case CMapOrientation::negi_negj:
+                    case CMapOrientation::negj_posi:
+                        edgeNeighbours.at(3) = cm_other->cm.at(0).at(vs_other);
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case 1:
+                edgeNeighbours.at(2) = cm->cm.at(0).at(vs);
+                switch (cm->boundaryCMs.at(n).o) {
+                    case CMapOrientation::posi_posj:
+                    case CMapOrientation::negj_posi:
+                        edgeNeighbours.at(3) = cm_other->cm.at(vs_other).at(0);
+                        break;
+                    case CMapOrientation::posj_negi:
+                    case CMapOrientation::negi_negj:
+                        edgeNeighbours.at(3) = cm_other->cm.at(0).at(vs_other);
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case 2:
+                edgeNeighbours.at(2) = cm->cm.at(vs).at(0);
+                switch (cm->boundaryCMs.at(n).o) {
+                    case CMapOrientation::posi_posj:
+                    case CMapOrientation::posj_negi:
+                        edgeNeighbours.at(3) = cm_other->cm.at(0).at(vs_other);
+                        break;
+                    case CMapOrientation::negi_negj:
+                    case CMapOrientation::negj_posi:
+                        edgeNeighbours.at(3) = cm_other->cm.at(vs_other).at(0);
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case 3:
+                edgeNeighbours.at(2) = cm->cm.at(vs).at(0);
+                switch (cm->boundaryCMs.at(n).o) {
+                    case CMapOrientation::posi_posj:
+                    case CMapOrientation::negj_posi:
+                        edgeNeighbours.at(3) = cm_other->cm.at(0).at(vs_other);
+                        break;
+                    case CMapOrientation::posj_negi:
+                    case CMapOrientation::negi_negj:
+                        edgeNeighbours.at(3) = cm_other->cm.at(vs_other).at(0);
+                        break;
+                    default:
+                        break;
+                }
+                break;
+
+            default:
+                break;
+        }
+    }
+    // internal
+    else
+    {
+        edgeNeighbours.at(0) = cm->cm.at(v1.x).at(v1.y);
+        edgeNeighbours.at(1) = cm->cm.at(v2.x).at(v2.y);
+        switch (getEdgeDirection(v1, v2)) {
+            case EdgeDirection::vert:
+                // make sure v1 is lower
+                if(v1.y > v2.y)
+                {
+                    std::swap(v1, v2);
+                }
+                edgeNeighbours.at(2) = cm->cm.at(v2.x-vs).at(v2.y);
+                edgeNeighbours.at(3) = cm->cm.at(v1.x+vs).at(v1.y);
+                break;
+            case EdgeDirection::horz:
+                // make sure v1 is on left
+                if(v1.x > v2.x)
+                {
+                    std::swap(v1, v2);
+                }
+                edgeNeighbours.at(2) = cm->cm.at(v1.x).at(v1.y+vs);
+                edgeNeighbours.at(3) = cm->cm.at(v2.x).at(v2.y-vs);
+                break;
+            case EdgeDirection::diag:
+                edgeNeighbours.at(2) = cm->cm.at(v1.x).at(v2.y);
+                edgeNeighbours.at(3) = cm->cm.at(v2.x).at(v1.y);
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    return edgeNeighbours;
 }
 
 void ACM::updateVertexCMapMap(const std::vector<VertexHandle>& verts, const CMapHandle cm_idx)
@@ -366,7 +474,7 @@ CMapNeighbour ACM::getCommanCMap(
         }
     }
 
-    NeighbourNumber n = getNeighbourNumber(vh1_coords, vh2_coords);
+    NeighbourNumber n = getNeighbourNumber(cmh, vh1_coords, vh2_coords);
     CMapOrientation o = getNeighbourCase(n, vh1_coords, vh2_coords, vh1_coords_pair, vh2_coords_pair);
     cm_pair.n = n;
     cm_pair.o = o;
@@ -392,25 +500,71 @@ bool ACM::areEdgePointsEqual(const CMapIndex& e1v1,
     }
 }
 
-NeighbourNumber ACM::getNeighbourNumber(const CMapIndex& v1, const CMapIndex& v2)
+
+bool ACM::isIndexOnCorner(CMapHandle cmh, CMapIndex index)
 {
+    CMap* cm;
+    CMapIndex location;
+    cm = getCMap(cmh);
+    int max = cm->cm.size()-1;
+    CMapIndex v0loc(0,0); // 0,0
+    CMapIndex v1loc(max,0); // max,0
+    CMapIndex v2loc(max,max); // max,max
+    CMapIndex v3loc(0,max); // 0,max
+
+    // on corner
+    if((v0loc == index) || (v1loc == index)
+       || (v2loc == index) || (v3loc == index))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool ACM::isIndexOnBoarder(CMapHandle cmh, CMapIndex ev1, CMapIndex ev2)
+{
+    if(getNeighbourNumber(cmh, ev1, ev2) == -1)
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+NeighbourNumber ACM::getNeighbourNumber(CMapHandle cmh,
+                                        const CMapIndex& v1,
+                                        const CMapIndex& v2)
+{
+    CMap* cm = getCMap(cmh);
+    int max = cm->cm.size()-1;
+
+    if( v1 == v2)
+    {
+        return -1;
+    }
     // neighbour 0
-    if(areEdgePointsEqual(v1, v2, CMapIndex(0,0), CMapIndex(1,0)))
+    if(v1.y == 0 && v2.y == 0)
     {
         return 0;
     }
     // neighbour 1
-    else if(areEdgePointsEqual(v1, v2, CMapIndex(1,0), CMapIndex(1,1)))
+    else if(v1.x == max && v2.x == max)
     {
         return 1;
     }
     // neighbour 2
-    else if(areEdgePointsEqual(v1, v2, CMapIndex(1,1), CMapIndex(0,1)))
+    else if(v1.y == max && v2.y == max)
     {
         return 2;
     }
     // neighbour 3
-    else if(areEdgePointsEqual(v1, v2, CMapIndex(0,1), CMapIndex(0,0)))
+    else if(v1.x == 0 && v2.x == 0)
+
     {
         return 3;
     }
@@ -694,7 +848,7 @@ std::vector<VertexHandle> ACM::getCornerNeighbours(CMapHandle cmh, CMapIndex cor
     return cornerNeighbours;
 }
 
-std::vector<VertexHandle> ACM::getEdgeNeighbours(CMapHandle cmh,
+std::vector<VertexHandle> ACM::getBoundaryNeighbours(CMapHandle cmh,
                                                  CMapIndex edgeVert)
 {
     std::vector<VertexHandle> edgeNeighbours;
@@ -1192,4 +1346,23 @@ std::vector<VertexHandle> ACM::getNeighboursForCase3(CMapHandle cmh,
             break;
     }
     return edgeNeighbours;
+}
+
+EdgeDirection ACM::getEdgeDirection(CMapIndex v1, CMapIndex v2)
+{
+    // vertical
+    if(v1.x == v2.x)
+    {
+        return EdgeDirection::vert;
+    }
+    // horizontal
+    else if(v1.y == v2.y)
+    {
+        return EdgeDirection::horz;
+    }
+    // diagonal
+    else
+    {
+        return EdgeDirection::diag;
+    }
 }

@@ -17,7 +17,7 @@ private:
     std::map<VertexHandle, Vertex> changes;
     void setNewVertexPositions(ACM* acm);
     void setVertexVertexPosition(ACM* acm, CMap* cm, CMapIndex index);
-    void setEdgeVertexPositions(ACM* acm, CMap* cm, CMapIndex index);
+    void setEdgeVertexPosition(ACM* acm, CMap* cm, CMapIndex index);
 
     float getWeight(int valence);
     void preComputeWeights(int maxValence);

@@ -20,16 +20,17 @@ void Loop::subdivide(ACM* acm)
     //setEdgeVertexPositions(acm);
 
     updateValues(acm);
-    ACM::VertexIter v_it = acm->v_begin();
-    for(; v_it !=acm->v_end(); v_it++)
-    {
-        std::vector<VertexHandle> verts = acm->getNeighbourhood(v_it->idx);
-        printf("vert %d has neighbours:\n", v_it->idx);
-        for(const auto& vert : verts)
-        {
-            printf("\tvert %d\n", vert);
-        }
-    }
+    acm->reduceVectorScale();
+//    ACM::VertexIter v_it = acm->v_begin();
+//    for(; v_it !=acm->v_end(); v_it++)
+//    {
+//        std::vector<VertexHandle> verts = acm->getNeighbourhood(v_it->idx);
+//        printf("vert %d has neighbours:\n", v_it->idx);
+//        for(const auto& vert : verts)
+//        {
+//            printf("\tvert %d\n", vert);
+//        }
+//    }
 }
 
 void Loop::decompose(ACM* acm)
@@ -55,7 +56,7 @@ void Loop::setNewVertexPositions(ACM * acm)
                 }
                 else
                 {
-                    //setEdgeVertexPositions()
+                    setEdgeVertexPosition(acm, &(*c_it), index);
                 }
             }
         }
@@ -92,12 +93,51 @@ void Loop::setVertexVertexPosition(ACM* acm, CMap* cm, CMapIndex index)
     //                details = ((8.0f*alpha) / 5.0f) * details;
 }
 
-void Loop::setEdgeVertexPositions(ACM* acm, CMap* cm, CMapIndex index)
+void Loop::setEdgeVertexPosition(ACM* acm, CMap* cm, CMapIndex index)
 {
 	// do all odd verts on boundaries
 
 	// do remaining odd verts
+    CMapIndex ev1, ev2;
+    VertexHandle vh = cm->cm.at(index.x).at(index.y);
+    // (odd, even) - horizontal
+    if(Utilities::isOdd(index.x) && Utilities::isEven(index.y))
+    {
+        ev1 = CMapIndex(index.x-1, index.y);
+        ev2 = CMapIndex(index.x+1, index.y);
+    }
+    // (even, odd) - vert
+    else if(Utilities::isEven(index.x) && Utilities::isOdd(index.y))
+    {
+        ev1 = CMapIndex(index.x, index.y-1);
+        ev2 = CMapIndex(index.x, index.y+1);
+    }
+    // (odd, odd) - diag
+    else if(Utilities::isOdd(index.x) && Utilities::isOdd(index.y))
+    {
+        ev1 = CMapIndex(index.x-1, index.y+1);
+        ev2 = CMapIndex(index.x+1, index.y-1);
+    }
+    else
+    {
+        return;
+    }
+    std::array<VertexHandle, 4> edgeNeighbours = acm->getEdgeNeighbours(cm->idx, ev1, ev2);
 
+    Vertex edgeVert;
+    Vertex* v1;
+    Vertex* v2;
+    Vertex* v3;
+    Vertex* v4;
+
+    v1 = acm->getVertex(edgeNeighbours.at(0));
+    v2 = acm->getVertex(edgeNeighbours.at(1));
+    v3 = acm->getVertex(edgeNeighbours.at(2));
+    v4 = acm->getVertex(edgeNeighbours.at(3));
+    // E` = (3/8)* [V1 + V2] + (1/8)*[V3 + V4]
+    //            pos = (3.0/8.0)*v1v2 + (1.0/8.0)*v3v4;
+    edgeVert = (3.0/8.0)*(*v1 + *v2) + (1.0/8.0)*(*v3 + *v4);
+    changes[vh] = edgeVert;
 //    TriMesh::EdgeIter edgeIter;
 //    TriMesh::VertexHandle vertex;
 //    TriMesh::HalfedgeHandle halfEdge;

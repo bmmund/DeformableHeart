@@ -18,7 +18,13 @@ enum class CMapOrientation{
     posj_negi,
     negi_negj,
     negj_posi,
-    invalid = 1
+    invalid = -1
+};
+
+enum class EdgeDirection{
+    horz,
+    vert,
+    diag
 };
 
 struct Vertex {
@@ -137,8 +143,12 @@ public:
     void updateCMapCorners();
     CMapHandle getCMapForVertex(VertexHandle vh);
     void refine();
+    void reduceVectorScale();
     void decompose();
     std::vector<VertexHandle> getNeighbourhood(VertexHandle vh);
+    std::array<VertexHandle, 4> getEdgeNeighbours(CMapHandle cmh,
+                                                CMapIndex v1,
+                                                CMapIndex v2);
 
 private:
     std::vector<CMap> cm_list;
@@ -153,7 +163,11 @@ private:
                             const CMapIndex& e1v2,
                             const CMapIndex& e2v1,
                             const CMapIndex& e2v2);
-    NeighbourNumber getNeighbourNumber(const CMapIndex& v1, const CMapIndex& v2);
+    bool isIndexOnCorner(CMapHandle cmh, CMapIndex index);
+    bool isIndexOnBoarder(CMapHandle cmh, CMapIndex ev1, CMapIndex ev2);
+    NeighbourNumber getNeighbourNumber(CMapHandle cmh,
+                                       const CMapIndex& v1,
+                                       const CMapIndex& v2);
     CMapOrientation getNeighbourCase(
                                      int neighbourNum,
                                      const CMapIndex& v1,
@@ -172,8 +186,8 @@ private:
     std::vector<CMapCornerNeighbour> findCMapCornerNeighbours(VertexHandle vh);
     std::vector<VertexHandle> getCornerNeighbours(CMapHandle cmh,
                                                   CMapIndex corner);
-    std::vector<VertexHandle> getEdgeNeighbours(CMapHandle cmh,
-                                                CMapIndex edgeVert);
+    std::vector<VertexHandle> getBoundaryNeighbours(CMapHandle cmh,
+                                                    CMapIndex edgeVert);
     std::vector<VertexHandle> getInternalNeighbours(CMapHandle cmh,
                                                     CMapIndex intVert);
     std::vector<VertexHandle> getNeighboursForCase0(CMapHandle cmh,
@@ -184,6 +198,7 @@ private:
                                                     CMapIndex edgeVert);
     std::vector<VertexHandle> getNeighboursForCase3(CMapHandle cmh,
                                                     CMapIndex edgeVert);
+    EdgeDirection getEdgeDirection(CMapIndex v1, CMapIndex v2);
 };
 
 
