@@ -45,19 +45,19 @@ HeartMesh::~HeartMesh()
 
 void HeartMesh::updateFaceIndeces()
 {
-    int index;
-
     points.clear();
     normals.clear();
     colours.clear();
+    isOdd.clear();
     faceIndeces.clear();
 
-    points.reserve(mesh.n_faces()*3);
-    normals.reserve(mesh.n_faces()*3);
-    colours.reserve(mesh.n_faces()*3);
+    int vertexCount = acm.vertices().size();
+    points.resize(vertexCount);
+    normals.resize(vertexCount);
+    colours.resize(vertexCount);
+    isOdd.resize(vertexCount);
     faceIndeces.reserve(mesh.n_faces()*3);
 
-    index = 0;
     for(const auto& cm : acm.connectivityMaps())
     {
         Vertex *vert;
@@ -69,11 +69,11 @@ void HeartMesh::updateFaceIndeces()
             for(const auto& vertHandle : face)
             {
                 vert = acm.getVertex(vertHandle);
-                points.push_back(vert->point);
-                colours.push_back(face_colour);
-                normals.push_back(vert->normal);
-                faceIndeces.push_back(index);
-                index++;
+                points.at(vertHandle) = vert->point;
+                colours.at(vertHandle) = face_colour;
+                normals.at(vertHandle) = vert->normal;
+                isOdd.at(vertHandle) = acm.isVertexOdd(vertHandle);
+                faceIndeces.push_back(vertHandle);
             }
         }
     }
@@ -82,8 +82,13 @@ void HeartMesh::updateFaceIndeces()
 
 void HeartMesh::Draw()
 {
+    Draw(GL_TRIANGLES);
+}
+
+void HeartMesh::Draw(GLenum mode)
+{
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, faceIndeces.size(), GL_UNSIGNED_INT, 0);
+    glDrawElements(mode, faceIndeces.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
 
@@ -102,13 +107,18 @@ void HeartMesh::updateBuffers()
     int points_size = points.size() * sizeof(glm::vec3);
     int normals_size = normals.size() * sizeof(glm::vec3);
     int colours_size = colours.size() * sizeof(glm::vec3);
-    int vertex_size = points_size + normals_size + colours_size;
+    int isOdd_size = isOdd.size() * sizeof(GLuint);
+    int vertex_size = points_size + normals_size + colours_size + isOdd_size;
 
     glBufferData(GL_ARRAY_BUFFER, vertex_size, NULL, GL_STATIC_DRAW);
 
     glBufferSubData(GL_ARRAY_BUFFER, 0, points_size, &points[0]);
     glBufferSubData(GL_ARRAY_BUFFER, points_size, normals_size, &normals[0]);
     glBufferSubData(GL_ARRAY_BUFFER, points_size + normals_size, colours_size, &colours[0]);
+    glBufferSubData(GL_ARRAY_BUFFER,
+                    points_size + normals_size + colours_size,
+                    isOdd_size,
+                    &isOdd[0]);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, faceIndeces.size() * sizeof(GLuint),
@@ -123,6 +133,9 @@ void HeartMesh::updateBuffers()
     // Vertex Colours
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)(points_size+normals_size));
+
+    glEnableVertexAttribArray(3);
+    glVertexAttribIPointer(3, 1, GL_UNSIGNED_INT, 0, (GLvoid*)(points_size+normals_size + colours_size));
 
     glBindVertexArray(0);
 }
@@ -150,7 +163,9 @@ void HeartMesh::initializeACM()
         std::vector<VertexHandle> verts;
         for(fv_iter = mesh.fv_iter(*f_iter); fv_iter.is_valid(); fv_iter++)
         {
-            VertexHandle idx(createACMVertex(*fv_iter));
+            // even verts as green
+            glm::vec3 colour(0.f, 1.f, 0.f);
+            VertexHandle idx(createACMVertex(*fv_iter, colour));
             verts.push_back(idx);
         }
         // create cm and add verts

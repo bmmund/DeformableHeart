@@ -18,6 +18,7 @@ public:
 private:
     Shader shaderPhong;
     Shader shaderSolid;
+    Shader shaderPoint;
     GLuint modelLoc;
     GLuint viewLoc;
     GLuint projLoc;

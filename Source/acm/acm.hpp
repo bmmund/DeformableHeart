@@ -121,8 +121,10 @@ public:
     typedef std::vector<CMap>::iterator CMapIter;
     ACM();
     std::vector<CMap>& connectivityMaps();
+    std::vector<Vertex>& vertices();
     void add(const CMap& cm);
     void clear();
+
     VertexIter v_begin(){return v_list.begin();}
     VertexIter v_end(){return v_list.end();}
     CMapIter cm_begin(){return cm_list.begin();}
@@ -149,6 +151,9 @@ public:
     std::array<VertexHandle, 4> getEdgeNeighbours(CMapHandle cmh,
                                                 CMapIndex v1,
                                                 CMapIndex v2);
+    CMapIndex getVertexCMapIndex(VertexHandle vh);
+    bool isVertexEven(VertexHandle vh);
+    bool isVertexOdd(VertexHandle vh);
 
 private:
     std::vector<CMap> cm_list;

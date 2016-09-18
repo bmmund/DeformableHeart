@@ -25,6 +25,7 @@ public:
     ACM* getACM(){return &acm;}
     void updateFaceIndeces();
     void Draw();
+    void Draw(GLenum mode);
 private:
     std::mt19937 rng;
     std::uniform_int_distribution<int> gen;
@@ -34,6 +35,7 @@ private:
     std::vector<glm::vec3> points;
     std::vector<glm::vec3> normals;
     std::vector<glm::vec3> colours;
+    std::vector<GLuint> isOdd;
     std::vector<int> pairedTrisFH;
     ACM acm;
 

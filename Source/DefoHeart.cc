@@ -19,6 +19,7 @@ DefoHeart::DefoHeart()
 	: App(windowWidth, windowHeight, application_name),
         shaderPhong("vertex.glsl", "fragment.glsl"),
         shaderSolid("vertexSolid.glsl", "fragSolid.glsl"),
+        shaderPoint("vertexPoints.glsl", "fragSolid.glsl"),
         mesh(CUBE_MESH_PATH),
         subDivider(),
         trackball(windowWidth, windowHeight),
@@ -41,6 +42,7 @@ void DefoHeart::loop()
     // Clear the frame buffer
     glClearColor(0.1f, 0.2f, 0.2f, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
     shaderPhong.Use();
     getAtterLocations(shaderPhong);
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelM));
@@ -62,6 +64,16 @@ void DefoHeart::loop()
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         mesh.Draw();
     }
+
+    // draw points
+    shaderPoint.Use();
+    getAtterLocations(shaderPoint);
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelM));
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewM));
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projM));
+    glPointSize(10);
+    mesh.Draw(GL_POINTS);
+    glDisable(GL_POLYGON_OFFSET_FILL);
 }
 
 void DefoHeart::initializeGL()

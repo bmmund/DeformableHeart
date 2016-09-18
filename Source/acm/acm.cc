@@ -1,6 +1,9 @@
 #include "acm.hpp"
 #include <algorithm>
 #include <assert.h>
+#include <iostream>
+#include "utilities.hpp"
+
 ACM::ACM()
 {
 
@@ -14,6 +17,11 @@ void ACM::add(const CMap &cm)
 std::vector<CMap>& ACM::connectivityMaps()
 {
     return cm_list;
+}
+
+std::vector<Vertex>& ACM::vertices()
+{
+    return v_list;
 }
 
 void ACM::clear()
@@ -395,6 +403,46 @@ std::array<VertexHandle, 4> ACM::getEdgeNeighbours(CMapHandle cmh,
     }
 
     return edgeNeighbours;
+}
+
+CMapIndex ACM::getVertexCMapIndex(VertexHandle vh)
+{
+    CMapHandle cmh = getCMapForVertex(vh);
+    CMap* cm = getCMap(cmh);
+    for(int i = 0; i < cm->cm.size(); i++)
+    {
+        for(int j = 0; j < cm->cm.at(i).size(); j++)
+        {
+            if(cm->cm.at(i).at(j) == vh)
+            {
+                return CMapIndex(i,j);
+            }
+        }
+    }
+    throw "Invalid vertex";
+    return CMapIndex(0,0);
+}
+
+bool ACM::isVertexEven(VertexHandle vh)
+{
+    CMapIndex location;
+    bool isEven = false;
+    try {
+        location = getVertexCMapIndex(vh);
+        if((Utilities::isEven(location.x)) &&
+           (Utilities::isEven(location.y)))
+           isEven = true;
+       else
+           isEven = false;
+    }catch (const char* msg) {
+        std::cerr << msg << std::endl;
+    }
+    return isEven;
+}
+
+bool ACM::isVertexOdd(VertexHandle vh)
+{
+    return !isVertexEven(vh);
 }
 
 void ACM::updateVertexCMapMap(const std::vector<VertexHandle>& verts, const CMapHandle cm_idx)
@@ -861,7 +909,6 @@ std::vector<VertexHandle> ACM::getBoundaryNeighbours(CMapHandle cmh,
     CMapIndex v3loc(0,max); // 0,max
 
     CMapNeighbour cm_neighbour;
-    CMap* cm_n_ptr;
 
     // make sure it is not a corner
     if((v0loc == edgeVert) || (v1loc == edgeVert)
