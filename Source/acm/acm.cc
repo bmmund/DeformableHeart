@@ -1007,10 +1007,18 @@ std::vector<VertexHandle> ACM::getNeighboursForCase0(CMapHandle cmh,
         case CMapOrientation::posi_posj:
             // edgeVert is at (x,max)
             location = CMapIndex(edgeVert.x, max);
+
             // 0,-j is now 0,-j
             dir = CMapVector(0,-1);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
+            vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
+            edgeNeighbours.push_back(vert);
+
+            // i,-j is now i,-j
+            dir = CMapVector(1, -1);
+            idx.x = location.x + dir.x;
+            idx.y = location.y + dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
             break;
@@ -1018,10 +1026,18 @@ std::vector<VertexHandle> ACM::getNeighboursForCase0(CMapHandle cmh,
         case CMapOrientation::posj_negi:
             // edgeVert is at (0,x)
             location = CMapIndex(0, edgeVert.x);
+
             // 0,-j is now i,0
             dir = CMapVector(1,0);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
+            vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
+            edgeNeighbours.push_back(vert);
+
+            // i,-j is now i,j
+            dir = CMapVector(1, 1);
+            idx.x = location.x + dir.x;
+            idx.y = location.y + dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
             break;
@@ -1029,10 +1045,18 @@ std::vector<VertexHandle> ACM::getNeighboursForCase0(CMapHandle cmh,
         case CMapOrientation::negi_negj:
             // edgeVert is at (max-x,0)
             location = CMapIndex(max-edgeVert.x,0);
+
             // 0,-j is now 0,j
             dir = CMapVector(0,1);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
+            vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
+            edgeNeighbours.push_back(vert);
+
+            // i,-j is now -i,j
+            dir = CMapVector(-1, 1);
+            idx.x = location.x + dir.x;
+            idx.y = location.y + dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
             break;
@@ -1040,10 +1064,18 @@ std::vector<VertexHandle> ACM::getNeighboursForCase0(CMapHandle cmh,
         case CMapOrientation::negj_posi:
             // edgeVert is at (max,max-x)
             location = CMapIndex(max,max-edgeVert.x);
+
             // 0,-j is now -i,0
             dir = CMapVector(-1,0);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
+            vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
+            edgeNeighbours.push_back(vert);
+
+            // i,-j is now -i,-j
+            dir = CMapVector(-1, -1);
+            idx.x = location.x + dir.x;
+            idx.y = location.y + dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
             break;
@@ -1274,7 +1306,7 @@ std::vector<VertexHandle> ACM::getNeighboursForCase2(CMapHandle cmh,
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
             break;
-            
+
         default:
             break;
     }
@@ -1388,7 +1420,7 @@ std::vector<VertexHandle> ACM::getNeighboursForCase3(CMapHandle cmh,
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
             break;
-            
+
         default:
             break;
     }
