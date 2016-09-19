@@ -204,6 +204,7 @@ private:
     std::vector<VertexHandle> getNeighboursForCase3(CMapHandle cmh,
                                                     CMapIndex edgeVert);
     EdgeDirection getEdgeDirection(CMapIndex v1, CMapIndex v2);
+    void orderEdgeVertsLowToHight(CMapIndex* v1, CMapIndex* v2);
 };
 
 

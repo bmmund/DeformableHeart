@@ -75,9 +75,11 @@ void Loop::setVertexVertexPosition(ACM* acm, CMap* cm, CMapIndex index)
     // sum up neighbours
     // alpha * SUM(Vj)
     Vertex sum;
+    Vertex* vptr;
     for (auto& neighbour : neighbours)
     {
-        sum += *(acm->getVertex(neighbour));
+        vptr = acm->getVertex(neighbour);
+        sum += *vptr;
     }
     sum = alpha * sum;
 

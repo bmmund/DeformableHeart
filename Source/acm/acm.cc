@@ -244,17 +244,8 @@ std::vector<VertexHandle> ACM::getNeighbourhood(VertexHandle vh)
     CMap* cm;
     CMapIndex location;
     cm = getCMap(getCMapForVertex(vh));
-    for(int i = 0; i < cm->cm.size(); i++)
-    {
-        for(int j = 0; j < cm->cm.at(i).size(); j++)
-        {
-            if(cm->cm.at(i).at(j) == vh)
-            {
-                location = CMapIndex(i,j);
-                break;
-            }
-        }
-    }
+    location = getVertexCMapIndex(vh);
+
     int max = cm->cm.size()-1;
     CMapIndex v0loc(0,0); // 0,0
     CMapIndex v1loc(max,0); // max,0
@@ -290,6 +281,9 @@ std::array<VertexHandle, 4> ACM::getEdgeNeighbours(CMapHandle cmh,
     CMap* cm_other;
     int vs, vs_other;
     vs = cm->vectorScale;
+    int max = cm->cm.size() - 1;
+
+    orderEdgeVertsLowToHight(&v1, &v2);
 
     edgeNeighbours.at(0) = cm->cm.at(v1.x).at(v1.y);
     edgeNeighbours.at(1) = cm->cm.at(v2.x).at(v2.y);
@@ -349,11 +343,11 @@ std::array<VertexHandle, 4> ACM::getEdgeNeighbours(CMapHandle cmh,
                 }
                 break;
             case 3:
-                edgeNeighbours.at(2) = cm->cm.at(vs).at(0);
+                edgeNeighbours.at(2) = cm->cm.at(vs).at(v1.y);
                 switch (cm->boundaryCMs.at(n).o) {
                     case CMapOrientation::posi_posj:
                     case CMapOrientation::negj_posi:
-                        edgeNeighbours.at(3) = cm_other->cm.at(0).at(vs_other);
+                        edgeNeighbours.at(3) = cm_other->cm.at(max-vs_other).at(v2.y);
                         break;
                     case CMapOrientation::posj_negi:
                     case CMapOrientation::negi_negj:
@@ -375,20 +369,10 @@ std::array<VertexHandle, 4> ACM::getEdgeNeighbours(CMapHandle cmh,
         edgeNeighbours.at(1) = cm->cm.at(v2.x).at(v2.y);
         switch (getEdgeDirection(v1, v2)) {
             case EdgeDirection::vert:
-                // make sure v1 is lower
-                if(v1.y > v2.y)
-                {
-                    std::swap(v1, v2);
-                }
                 edgeNeighbours.at(2) = cm->cm.at(v2.x-vs).at(v2.y);
                 edgeNeighbours.at(3) = cm->cm.at(v1.x+vs).at(v1.y);
                 break;
             case EdgeDirection::horz:
-                // make sure v1 is on left
-                if(v1.x > v2.x)
-                {
-                    std::swap(v1, v2);
-                }
                 edgeNeighbours.at(2) = cm->cm.at(v1.x).at(v1.y+vs);
                 edgeNeighbours.at(3) = cm->cm.at(v2.x).at(v2.y-vs);
                 break;
@@ -952,24 +936,25 @@ std::vector<VertexHandle> ACM::getInternalNeighbours(CMapHandle cmh,
     CMap* cm;
     cm = getCMap(cmh);
     VertexHandle vert;
+    int vecScale = cm->vectorScale;
     // add internal verts
     // i,0
-    vert = cm->cm.at(intVert.x+1).at(intVert.y);
+    vert = cm->cm.at(intVert.x + vecScale).at(intVert.y);
     internalNeighbours.push_back(vert);
     // 0,j
-    vert = cm->cm.at(intVert.x).at(intVert.y+1);
+    vert = cm->cm.at(intVert.x).at(intVert.y + vecScale);
     internalNeighbours.push_back(vert);
     // -i,j
-    vert = cm->cm.at(intVert.x-1).at(intVert.y+1);
+    vert = cm->cm.at(intVert.x - vecScale).at(intVert.y + vecScale);
     internalNeighbours.push_back(vert);
     // -i,0
-    vert = cm->cm.at(intVert.x-1).at(intVert.y);
+    vert = cm->cm.at(intVert.x - vecScale).at(intVert.y);
     internalNeighbours.push_back(vert);
     // 0,-j
-    vert = cm->cm.at(intVert.x).at(intVert.y-1);
+    vert = cm->cm.at(intVert.x).at(intVert.y - vecScale);
     internalNeighbours.push_back(vert);
     // i,-j
-    vert = cm->cm.at(intVert.x+1).at(intVert.y-1);
+    vert = cm->cm.at(intVert.x + vecScale).at(intVert.y - vecScale);
     internalNeighbours.push_back(vert);
     return internalNeighbours;
 }
@@ -984,18 +969,20 @@ std::vector<VertexHandle> ACM::getNeighboursForCase0(CMapHandle cmh,
     CMapNeighbour cm_neighbour;
     CMap* cm_n_ptr;
     VertexHandle vert;
+    int vecScale = cm->vectorScale;
+
     // add internal verts
     // i,0
-    vert = cm->cm.at(edgeVert.x+1).at(edgeVert.y);
+    vert = cm->cm.at(edgeVert.x + vecScale).at(edgeVert.y);
     edgeNeighbours.push_back(vert);
     // 0,j
-    vert = cm->cm.at(edgeVert.x).at(edgeVert.y+1);
+    vert = cm->cm.at(edgeVert.x).at(edgeVert.y + vecScale);
     edgeNeighbours.push_back(vert);
     // -i,j
-    vert = cm->cm.at(edgeVert.x-1).at(edgeVert.y+1);
+    vert = cm->cm.at(edgeVert.x - vecScale).at(edgeVert.y + vecScale);
     edgeNeighbours.push_back(vert);
     // -i,0
-    vert = cm->cm.at(edgeVert.x-1).at(edgeVert.y);
+    vert = cm->cm.at(edgeVert.x - vecScale).at(edgeVert.y);
     edgeNeighbours.push_back(vert);
 
     // missing(0,-j):
@@ -1009,14 +996,14 @@ std::vector<VertexHandle> ACM::getNeighboursForCase0(CMapHandle cmh,
             location = CMapIndex(edgeVert.x, max);
 
             // 0,-j is now 0,-j
-            dir = CMapVector(0,-1);
+            dir = CMapVector(0,-vecScale);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
 
             // i,-j is now i,-j
-            dir = CMapVector(1, -1);
+            dir = CMapVector(vecScale, -vecScale);
             idx.x = location.x + dir.x;
             idx.y = location.y + dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
@@ -1028,14 +1015,14 @@ std::vector<VertexHandle> ACM::getNeighboursForCase0(CMapHandle cmh,
             location = CMapIndex(0, edgeVert.x);
 
             // 0,-j is now i,0
-            dir = CMapVector(1,0);
+            dir = CMapVector(vecScale,0);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
 
             // i,-j is now i,j
-            dir = CMapVector(1, 1);
+            dir = CMapVector(vecScale, vecScale);
             idx.x = location.x + dir.x;
             idx.y = location.y + dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
@@ -1047,14 +1034,14 @@ std::vector<VertexHandle> ACM::getNeighboursForCase0(CMapHandle cmh,
             location = CMapIndex(max-edgeVert.x,0);
 
             // 0,-j is now 0,j
-            dir = CMapVector(0,1);
+            dir = CMapVector(0,vecScale);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
 
             // i,-j is now -i,j
-            dir = CMapVector(-1, 1);
+            dir = CMapVector(-vecScale, vecScale);
             idx.x = location.x + dir.x;
             idx.y = location.y + dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
@@ -1066,14 +1053,14 @@ std::vector<VertexHandle> ACM::getNeighboursForCase0(CMapHandle cmh,
             location = CMapIndex(max,max-edgeVert.x);
 
             // 0,-j is now -i,0
-            dir = CMapVector(-1,0);
+            dir = CMapVector(-vecScale,0);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
 
             // i,-j is now -i,-j
-            dir = CMapVector(-1, -1);
+            dir = CMapVector(-vecScale, -vecScale);
             idx.x = location.x + dir.x;
             idx.y = location.y + dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
@@ -1096,19 +1083,20 @@ std::vector<VertexHandle> ACM::getNeighboursForCase1(CMapHandle cmh,
     CMapNeighbour cm_neighbour;
     CMap* cm_n_ptr;
     VertexHandle vert;
+    int vecScale = cm->vectorScale;
 
     // add internal verts
     // 0,j
-    vert = cm->cm.at(edgeVert.x).at(edgeVert.y+1);
+    vert = cm->cm.at(edgeVert.x).at(edgeVert.y+vecScale);
     edgeNeighbours.push_back(vert);
     // -i,j
-    vert = cm->cm.at(edgeVert.x-1).at(edgeVert.y+1);
+    vert = cm->cm.at(edgeVert.x-vecScale).at(edgeVert.y+vecScale);
     edgeNeighbours.push_back(vert);
     // -i,0
-    vert = cm->cm.at(edgeVert.x-1).at(edgeVert.y);
+    vert = cm->cm.at(edgeVert.x-vecScale).at(edgeVert.y);
     edgeNeighbours.push_back(vert);
     // 0,-j
-    vert = cm->cm.at(edgeVert.x).at(edgeVert.y-1);
+    vert = cm->cm.at(edgeVert.x).at(edgeVert.y-vecScale);
     edgeNeighbours.push_back(vert);
 
     // missing (+i,0) (+i,-j):
@@ -1122,14 +1110,14 @@ std::vector<VertexHandle> ACM::getNeighboursForCase1(CMapHandle cmh,
             location = CMapIndex(0, edgeVert.y);
 
             // +i,0 is now +i,0
-            dir = CMapVector(1,0);
+            dir = CMapVector(vecScale,0);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
 
             // +i,-j is now +i,-j
-            dir = CMapVector(1,-1);
+            dir = CMapVector(vecScale,-vecScale);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
@@ -1141,14 +1129,14 @@ std::vector<VertexHandle> ACM::getNeighboursForCase1(CMapHandle cmh,
             location = CMapIndex(max-edgeVert.y, 0);
 
             // +i,0 is now 0,+j
-            dir = CMapVector(0,1);
+            dir = CMapVector(0,vecScale);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
 
             // +i,-j is now +i,+j
-            dir = CMapVector(1,1);
+            dir = CMapVector(vecScale,vecScale);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
@@ -1160,14 +1148,14 @@ std::vector<VertexHandle> ACM::getNeighboursForCase1(CMapHandle cmh,
             location = CMapIndex(max,max-edgeVert.y);
 
             // +i,0 is now -i,0
-            dir = CMapVector(-1,0);
+            dir = CMapVector(-vecScale,0);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
 
             // +i,-j is now -i,+j
-            dir = CMapVector(-1,1);
+            dir = CMapVector(-vecScale,vecScale);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
@@ -1179,14 +1167,14 @@ std::vector<VertexHandle> ACM::getNeighboursForCase1(CMapHandle cmh,
             location = CMapIndex(edgeVert.y, max);
 
             // +i,0 is now 0,-j
-            dir = CMapVector(0,-1);
+            dir = CMapVector(0,-vecScale);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
 
             // +i,-j is now -i,-j
-            dir = CMapVector(-1,-1);
+            dir = CMapVector(-vecScale,-vecScale);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
@@ -1210,19 +1198,20 @@ std::vector<VertexHandle> ACM::getNeighboursForCase2(CMapHandle cmh,
     CMapNeighbour cm_neighbour;
     CMap* cm_n_ptr;
     VertexHandle vert;
+    int vecScale = cm->vectorScale;
 
     // add internal verts
     // i,0
-    vert = cm->cm.at(edgeVert.x+1).at(edgeVert.y);
+    vert = cm->cm.at(edgeVert.x+vecScale).at(edgeVert.y);
     edgeNeighbours.push_back(vert);
     // -i,0
-    vert = cm->cm.at(edgeVert.x-1).at(edgeVert.y);
+    vert = cm->cm.at(edgeVert.x-vecScale).at(edgeVert.y);
     edgeNeighbours.push_back(vert);
     // 0,-j
-    vert = cm->cm.at(edgeVert.x).at(edgeVert.y-1);
+    vert = cm->cm.at(edgeVert.x).at(edgeVert.y-vecScale);
     edgeNeighbours.push_back(vert);
     // i,-j
-    vert = cm->cm.at(edgeVert.x+1).at(edgeVert.y-1);
+    vert = cm->cm.at(edgeVert.x+vecScale).at(edgeVert.y-vecScale);
     edgeNeighbours.push_back(vert);
 
     // missing (0,j) (-i,j):
@@ -1236,14 +1225,14 @@ std::vector<VertexHandle> ACM::getNeighboursForCase2(CMapHandle cmh,
             location = CMapIndex(edgeVert.x, 0);
 
             // 0,j is now 0,j
-            dir = CMapVector(0,1);
+            dir = CMapVector(0,vecScale);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
 
             // -i,j is now -i,j
-            dir = CMapVector(-1,1);
+            dir = CMapVector(-vecScale,vecScale);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
@@ -1255,14 +1244,14 @@ std::vector<VertexHandle> ACM::getNeighboursForCase2(CMapHandle cmh,
             location = CMapIndex(max, edgeVert.x);
 
             // 0,j is now -i,0
-            dir = CMapVector(-1,0);
+            dir = CMapVector(-vecScale,0);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
 
             // -i,j is now -i,-j
-            dir = CMapVector(-1,-1);
+            dir = CMapVector(-vecScale,-vecScale);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
@@ -1274,14 +1263,14 @@ std::vector<VertexHandle> ACM::getNeighboursForCase2(CMapHandle cmh,
             location = CMapIndex(max-edgeVert.x, max);
 
             // 0,j is now 0,-j
-            dir = CMapVector(0,-1);
+            dir = CMapVector(0,-vecScale);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
 
             // -i,j is now i,-j
-            dir = CMapVector(1,-1);
+            dir = CMapVector(vecScale,-vecScale);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
@@ -1293,14 +1282,14 @@ std::vector<VertexHandle> ACM::getNeighboursForCase2(CMapHandle cmh,
             location = CMapIndex(0, max-edgeVert.x);
 
             // 0,j is now i,0
-            dir = CMapVector(1,0);
+            dir = CMapVector(vecScale,0);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
 
             // -i,j is now i,j
-            dir = CMapVector(1,1);
+            dir = CMapVector(vecScale,vecScale);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
@@ -1324,19 +1313,20 @@ std::vector<VertexHandle> ACM::getNeighboursForCase3(CMapHandle cmh,
     CMapNeighbour cm_neighbour;
     CMap* cm_n_ptr;
     VertexHandle vert;
+    int vecScale = cm->vectorScale;
 
     // add internal verts
     // i,0
-    vert = cm->cm.at(edgeVert.x+1).at(edgeVert.y);
+    vert = cm->cm.at(edgeVert.x+vecScale).at(edgeVert.y);
     edgeNeighbours.push_back(vert);
     // 0,j
-    vert = cm->cm.at(edgeVert.x).at(edgeVert.y+1);
+    vert = cm->cm.at(edgeVert.x).at(edgeVert.y+vecScale);
     edgeNeighbours.push_back(vert);
     // 0,-j
-    vert = cm->cm.at(edgeVert.x).at(edgeVert.y-1);
+    vert = cm->cm.at(edgeVert.x).at(edgeVert.y-vecScale);
     edgeNeighbours.push_back(vert);
     // i,-j
-    vert = cm->cm.at(edgeVert.x+1).at(edgeVert.y-1);
+    vert = cm->cm.at(edgeVert.x+vecScale).at(edgeVert.y-vecScale);
     edgeNeighbours.push_back(vert);
 
     // missing (-i,j) (-i,0):
@@ -1350,14 +1340,14 @@ std::vector<VertexHandle> ACM::getNeighboursForCase3(CMapHandle cmh,
             location = CMapIndex(max, edgeVert.y);
 
             // -i,j is now -i,j
-            dir = CMapVector(-1,1);
+            dir = CMapVector(-vecScale,vecScale);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
 
             // -i,0 is now -i,0
-            dir = CMapVector(-1,0);
+            dir = CMapVector(-vecScale,0);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
@@ -1369,14 +1359,14 @@ std::vector<VertexHandle> ACM::getNeighboursForCase3(CMapHandle cmh,
             location = CMapIndex(max-edgeVert.y, max);
 
             // -i,j is now -i,-j
-            dir = CMapVector(-1,-1);
+            dir = CMapVector(-vecScale,-vecScale);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
 
             // -i,0 is now 0,-j
-            dir = CMapVector(0,-1);
+            dir = CMapVector(0,-vecScale);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
@@ -1388,14 +1378,14 @@ std::vector<VertexHandle> ACM::getNeighboursForCase3(CMapHandle cmh,
             location = CMapIndex(max, edgeVert.y);
 
             // -i,j is now i,-j
-            dir = CMapVector(1,-1);
+            dir = CMapVector(vecScale,-vecScale);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
 
             // -i,0 is now i,0
-            dir = CMapVector(1,0);
+            dir = CMapVector(vecScale,0);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
@@ -1407,14 +1397,14 @@ std::vector<VertexHandle> ACM::getNeighboursForCase3(CMapHandle cmh,
             location = CMapIndex(edgeVert.y, 0);
 
             // -i,j is now i,j
-            dir = CMapVector(1,1);
+            dir = CMapVector(vecScale,vecScale);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
             edgeNeighbours.push_back(vert);
 
             // -i,0 is now 0,j
-            dir = CMapVector(0,1);
+            dir = CMapVector(0,vecScale);
             idx.x = location.x+dir.x;
             idx.y = location.y+dir.y;
             vert = cm_n_ptr->cm.at(idx.x).at(idx.y);
@@ -1443,5 +1433,28 @@ EdgeDirection ACM::getEdgeDirection(CMapIndex v1, CMapIndex v2)
     else
     {
         return EdgeDirection::diag;
+    }
+}
+
+void ACM::orderEdgeVertsLowToHight(CMapIndex* v1, CMapIndex* v2)
+{
+    switch (getEdgeDirection(*v1, *v2)) {
+    case EdgeDirection::vert:
+        // make sure v1 is lower
+        if (v1->y > v2->y)
+        {
+            std::swap(v1, v2);
+        }
+        break;
+    case EdgeDirection::horz:
+        // make sure v1 is on left
+        if (v1->x > v2->x)
+        {
+            std::swap(v1, v2);
+        }
+        break;
+    case EdgeDirection::diag:
+    default:
+        break;
     }
 }
