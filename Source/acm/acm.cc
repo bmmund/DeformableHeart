@@ -298,45 +298,57 @@ std::array<VertexHandle, 4> ACM::getEdgeNeighbours(CMapHandle cmh,
         vs_other = cm_other->vectorScale;
         switch (n) {
             case 0:
-                edgeNeighbours.at(2) = cm->cm.at(0).at(vs);
+                edgeNeighbours.at(2) = cm->cm.at(v1.x).at(vs);
                 switch (cm->boundaryCMs.at(n).o) {
                     case CMapOrientation::posi_posj:
+                        edgeNeighbours.at(3) = cm_other->cm.at(v2.x).at(max-vs_other);
+                        break;
                     case CMapOrientation::posj_negi:
-                        edgeNeighbours.at(3) = cm_other->cm.at(vs_other).at(0);
+                        edgeNeighbours.at(3) = cm_other->cm.at(vs_other).at(v1.x);
                         break;
                     case CMapOrientation::negi_negj:
+                        edgeNeighbours.at(3) = cm_other->cm.at(max-v2.x).at(vs_other);
+                        break;
                     case CMapOrientation::negj_posi:
-                        edgeNeighbours.at(3) = cm_other->cm.at(0).at(vs_other);
+                        edgeNeighbours.at(3) = cm_other->cm.at(max-vs_other).at(max-v1.x);
                         break;
                     default:
                         break;
                 }
                 break;
             case 1:
-                edgeNeighbours.at(2) = cm->cm.at(0).at(vs);
+                edgeNeighbours.at(2) = cm->cm.at(max-vs).at(v2.y);
                 switch (cm->boundaryCMs.at(n).o) {
                     case CMapOrientation::posi_posj:
-                    case CMapOrientation::negj_posi:
-                        edgeNeighbours.at(3) = cm_other->cm.at(vs_other).at(0);
+                        edgeNeighbours.at(3) = cm_other->cm.at(vs_other).at(v1.y);
                         break;
                     case CMapOrientation::posj_negi:
+                        edgeNeighbours.at(3) = cm_other->cm.at(max-v2.y).at(vs_other);
+                        break;
                     case CMapOrientation::negi_negj:
-                        edgeNeighbours.at(3) = cm_other->cm.at(0).at(vs_other);
+                        edgeNeighbours.at(3) = cm_other->cm.at(max-vs_other).at(max-v1.y);
+                        break;
+                    case CMapOrientation::negj_posi:
+                        edgeNeighbours.at(3) = cm_other->cm.at(v2.y).at(max-vs_other);
                         break;
                     default:
                         break;
                 }
                 break;
             case 2:
-                edgeNeighbours.at(2) = cm->cm.at(vs).at(0);
+                edgeNeighbours.at(2) = cm->cm.at(v2.x).at(max-vs);
                 switch (cm->boundaryCMs.at(n).o) {
                     case CMapOrientation::posi_posj:
+                        edgeNeighbours.at(3) = cm_other->cm.at(v1.x).at(vs_other);
+                        break;
                     case CMapOrientation::posj_negi:
-                        edgeNeighbours.at(3) = cm_other->cm.at(0).at(vs_other);
+                        edgeNeighbours.at(3) = cm_other->cm.at(max-vs_other).at(v2.x);
                         break;
                     case CMapOrientation::negi_negj:
+                        edgeNeighbours.at(3) = cm_other->cm.at(max-v1.x).at(max-vs_other);
+                        break;
                     case CMapOrientation::negj_posi:
-                        edgeNeighbours.at(3) = cm_other->cm.at(vs_other).at(0);
+                        edgeNeighbours.at(3) = cm_other->cm.at(vs_other).at(max-v2.x);
                         break;
                     default:
                         break;
@@ -346,12 +358,16 @@ std::array<VertexHandle, 4> ACM::getEdgeNeighbours(CMapHandle cmh,
                 edgeNeighbours.at(2) = cm->cm.at(vs).at(v1.y);
                 switch (cm->boundaryCMs.at(n).o) {
                     case CMapOrientation::posi_posj:
-                    case CMapOrientation::negj_posi:
                         edgeNeighbours.at(3) = cm_other->cm.at(max-vs_other).at(v2.y);
                         break;
                     case CMapOrientation::posj_negi:
+                        edgeNeighbours.at(3) = cm_other->cm.at(max-v1.y).at(max-vs_other);
+                        break;
                     case CMapOrientation::negi_negj:
-                        edgeNeighbours.at(3) = cm_other->cm.at(vs_other).at(0);
+                        edgeNeighbours.at(3) = cm_other->cm.at(vs_other).at(max-v2.y);
+                        break;
+                    case CMapOrientation::negj_posi:
+                        edgeNeighbours.at(3) = cm_other->cm.at(v1.y).at(vs_other);
                         break;
                     default:
                         break;
