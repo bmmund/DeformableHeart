@@ -768,42 +768,53 @@ std::vector<CMapCornerNeighbour> ACM::findCMapCornerNeighbours(VertexHandle vh)
     CMapHandle cmh_ignore = getCMapForVertex(vh);
     std::vector<CMapCornerNeighbour> cornerNeighbours;
     assert(cmh_ignore != -1);
+    Vertex* vert = getVertex(vh);
     // look for all cms with the same vertex
     for(auto& cm : cm_list)
     {
         CMapCornerNeighbour temp;
         temp.cmh = cm.idx;
         // (0,0) || (1,1)
-        if((getVertex(cm.cm.at(0).at(0))->point == getVertex(vh)->point)
-            ||(getVertex(cm.cm.at(1).at(1))->point == getVertex(vh)->point)
-           )
+        if(getVertex(cm.cm.at(0).at(0))->point == vert->point)
         {
             // neighbhours at 0,1 and 1,0
-            temp.location = CMapIndex(0,1);
+            temp.origin = CMapIndex(0,0);
+            temp.dir = CMapVector(0,1);
             cornerNeighbours.push_back(temp);
-            temp.location = CMapIndex(1,0);
+            temp.dir = CMapVector(1,0);
+            cornerNeighbours.push_back(temp);
+        }
+        else if(getVertex(cm.cm.at(1).at(1))->point == vert->point)
+        {
+            // neighbhours at 0,1 and 1,0
+            temp.origin = CMapIndex(1,1);
+            temp.dir = CMapVector(-1,0);
+            cornerNeighbours.push_back(temp);
+            temp.dir = CMapVector(0,-1);
             cornerNeighbours.push_back(temp);
         }
         // (1,0)
-        else if(getVertex(cm.cm.at(1).at(0))->point == getVertex(vh)->point)
+        else if(getVertex(cm.cm.at(1).at(0))->point == vert->point)
         {
             // neighbhours at 0,0, 1,1 and 0,1
-            temp.location = CMapIndex(0,0);
+            temp.origin = CMapIndex(1,0);
+            temp.dir = CMapVector(-1,0);
             cornerNeighbours.push_back(temp);
-            temp.location = CMapIndex(1,1);
+            temp.dir = CMapVector(0,1);
             cornerNeighbours.push_back(temp);
-            temp.location = CMapIndex(0,1);
+            temp.dir = CMapVector(-1,1);
             cornerNeighbours.push_back(temp);
         }
         // (0,1)
-        else if(getVertex(cm.cm.at(0).at(1))->point == getVertex(vh)->point)
+        else if(getVertex(cm.cm.at(0).at(1))->point == vert->point)
         {
             // neighbhours at 0,0, 1,1 and 1,0
-            temp.location = CMapIndex(0,0);
+            temp.origin = CMapIndex(0,1);
+            temp.dir = CMapVector(0,-1);
             cornerNeighbours.push_back(temp);
-            temp.location = CMapIndex(1,1);
+            temp.dir = CMapVector(1,0);
             cornerNeighbours.push_back(temp);
-            temp.location = CMapIndex(1,0);
+            temp.dir = CMapVector(1,-1);
             cornerNeighbours.push_back(temp);
         }
         else
@@ -819,7 +830,7 @@ std::vector<CMapCornerNeighbour> ACM::findCMapCornerNeighbours(VertexHandle vh)
             CMap* cm1;
             VertexHandle vh1;
             Vertex* v1;
-            CMapIndex v1_index = neighbour->location;
+            CMapIndex v1_index = neighbour->location();
             cm1 = getCMap(neighbour->cmh);
             vh1 = cm1->cm.at(v1_index.x).at(v1_index.y);
             v1 = getVertex(vh1);
@@ -832,7 +843,7 @@ std::vector<CMapCornerNeighbour> ACM::findCMapCornerNeighbours(VertexHandle vh)
                 CMap* cm2;
                 VertexHandle vh2;
                 Vertex* v2;
-                CMapIndex v2_index = compare->location;
+                CMapIndex v2_index = compare->location();
                 cm2 = getCMap(compare->cmh);
                 vh2 = cm2->cm.at(v2_index.x).at(v2_index.y);
                 v2 = getVertex(vh2);
@@ -887,8 +898,7 @@ std::vector<VertexHandle> ACM::getCornerNeighbours(CMapHandle cmh, CMapIndex cor
     for(const auto& neighbour : neighbours)
     {
         CMap* neighbour_cm = getCMap(neighbour.cmh);
-        CMapIndex loc(neighbour.location);
-        loc *= neighbour_cm->vectorScale;
+        CMapIndex loc(neighbour.location(neighbour_cm->vectorScale, max));
         VertexHandle vert = neighbour_cm->cm.at(loc.x).at(loc.y);
         cornerNeighbours.push_back(vert);
     }

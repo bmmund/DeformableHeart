@@ -89,12 +89,26 @@ struct CMapNeighbour {
 
 struct CMapCornerNeighbour {
     CMapHandle cmh;
-    CMapIndex location;
+    CMapIndex origin;
+    CMapVector dir;
     CMapCornerNeighbour()
     : cmh(-1){}
+    CMapIndex location() const
+    {
+        return location(1, 1);
+    }
+    CMapIndex location(int vecScale, unsigned int acmScale) const
+    {
+        CMapIndex location = origin * acmScale;
+        location.x += dir.x * vecScale;
+        location.y += dir.y * vecScale;
+        return location;
+    }
     bool operator==(const CMapCornerNeighbour& other)
     {
-        return this->location == other.location;
+        CMapIndex l1 = location();
+        CMapIndex l2 = other.location();
+        return l1 == l2;
     }
     bool operator!=(const CMapCornerNeighbour& other)
     {
