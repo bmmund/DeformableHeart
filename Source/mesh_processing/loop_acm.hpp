@@ -19,9 +19,15 @@ private:
     void setVertexVertexPosition(ACM* acm, CMap* cm, CMapIndex index);
     void setEdgeVertexPosition(ACM* acm, CMap* cm, CMapIndex index);
 
+    void setCoarseVertexPositions(ACM* acm);
+    void setCoarseVertexVertexPosition(ACM* acm, CMap* cm, CMapIndex index);
+    void setCoarseEdgesDetails(ACM* acm);
+    void setCoarseEdgeDetails(ACM *acm, CMap* cm, CMapIndex index);
+
     float getWeight(int valence);
     void preComputeWeights(int maxValence);
     void updateValues(ACM* acm);
+    void addDetails(ACM* acm);
 };
 
 #endif /* __LOOP_ACM__HPP */

@@ -178,7 +178,7 @@ void ACM::refine()
     {
         if(cm.vectorScale > 1)
         {
-            cm.vectorScale = std::max((cm.vectorScale / 2), 1);
+            //cm.vectorScale = std::max((cm.vectorScale / 2), 1);
             continue;
         }
 
@@ -220,11 +220,16 @@ void ACM::reduceVectorScale()
 {
     for(auto& cm : cm_list)
     {
-        if(cm.vectorScale > 1)
-        {
-            cm.vectorScale = std::max((cm.vectorScale / 2), 1);
-            continue;
-        }
+        cm.vectorScale = std::max((cm.vectorScale / 2), 1);
+    }
+}
+
+void ACM::increaseVectorScale()
+{
+    for(auto& cm : cm_list)
+    {
+        int max = cm.cm.size()-1;
+        cm.vectorScale = std::min((cm.vectorScale * 2), max);
     }
 }
 

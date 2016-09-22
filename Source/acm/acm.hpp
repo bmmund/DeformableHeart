@@ -52,6 +52,13 @@ struct Vertex {
         colour += rhs.colour;
         return *this;
     }
+    Vertex& operator-=(const Vertex& rhs)
+    {
+        point -= rhs.point;
+        normal -= rhs.normal;
+        colour -= rhs.colour;
+        return *this;
+    }
     Vertex& operator*=(const float scale)
     {
         point *= scale;
@@ -63,6 +70,12 @@ struct Vertex {
     friend Vertex operator+(Vertex lhs, const Vertex& rhs)
     {
         lhs += rhs;
+        return lhs;
+    }
+
+    friend Vertex operator-(Vertex lhs, const Vertex& rhs)
+    {
+        lhs -= rhs;
         return lhs;
     }
 
@@ -160,6 +173,7 @@ public:
     CMapHandle getCMapForVertex(VertexHandle vh);
     void refine();
     void reduceVectorScale();
+    void increaseVectorScale();
     void decompose();
     std::vector<VertexHandle> getNeighbourhood(VertexHandle vh);
     std::array<VertexHandle, 4> getEdgeNeighbours(CMapHandle cmh,
