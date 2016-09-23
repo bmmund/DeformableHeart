@@ -73,6 +73,7 @@ App::App( int _width, int _height, std::string _title ):
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
     // create the window
     window = glfwCreateWindow( width, height, title.c_str(), nullptr, nullptr);

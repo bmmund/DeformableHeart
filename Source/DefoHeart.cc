@@ -78,8 +78,9 @@ void DefoHeart::loop()
 
 void DefoHeart::initializeGL()
 {
-	glEnable(GL_DEPTH_TEST);
-	getAtterLocations(shaderPhong);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_MULTISAMPLE);
+    getAtterLocations(shaderPhong);
     resetModelView();
     resize();
 }
