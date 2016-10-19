@@ -72,6 +72,16 @@ endif()
 find_package(GLM REQUIRED)
 
 #########################################################
+# FIND EIGEN
+#########################################################
+#  EIGEN3_INCLUDE_DIR - the eigen include directory
+if(USE_LOCAL_DEPENDANCIES)
+    find_package(Eigen3 REQUIRED)
+else()
+    add_subdirectory(${DEPENDANCY_DIR}/eigen3)
+endif()
+
+#########################################################
 # FIND Qt5
 #########################################################
 # Qt5Widgets_LIBRARIES      - librariers to link agianst Qt
