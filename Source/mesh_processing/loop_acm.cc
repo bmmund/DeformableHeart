@@ -24,25 +24,26 @@ void Loop::subdivide(ACM* acm)
 void Loop::decompose(ACM* acm)
 {
     setCoarseVertexPositions(acm);
+    //setCoarseEdgesDetails(acm);
     acm->increaseVectorScale();
-    setCoarseEdgesDetails(acm);
     updateValues(acm);
-//    acm->decompose();
 }
 
 void Loop::setNewVertexPositions(ACM * acm)
 {
     ACM::CMapIter c_it;
+    int vs;
     // for each connectivity map
     for (c_it = acm->cm_begin(); c_it != acm->cm_end(); c_it++)
     {
+        vs = c_it->vectorScale/2;
         // for each even vertex
-        for (int i = 0; i < c_it->cm.size(); i++)
+        for (int i = 0; i < c_it->cm.size(); i+=vs)
         {
-            for (int j = 0; j < c_it->cm.at(i).size(); j++)
+            for (int j = 0; j < c_it->cm.at(i).size(); j+=vs)
             {
                 CMapIndex index(i, j);
-                if (Utilities::isEven(i) && Utilities::isEven(j))
+                if (Utilities::isEven(i/vs) && Utilities::isEven(j/vs))
                 {
                     setVertexVertexPosition(acm, &(*c_it), index);
                 }
@@ -84,24 +85,25 @@ void Loop::setEdgeVertexPosition(ACM* acm, CMap* cm, CMapIndex index)
 {
 	// do remaining odd verts
     CMapIndex ev1, ev2;
+    int vs = cm->vectorScale/2;
     VertexHandle vh = cm->cm.at(index.x).at(index.y);
     // (odd, even) - horizontal
-    if(Utilities::isOdd(index.x) && Utilities::isEven(index.y))
+    if(Utilities::isOdd(index.x/vs) && Utilities::isEven(index.y/vs))
     {
-        ev1 = CMapIndex(index.x-1, index.y);
-        ev2 = CMapIndex(index.x+1, index.y);
+        ev1 = CMapIndex(index.x-vs, index.y);
+        ev2 = CMapIndex(index.x+vs, index.y);
     }
     // (even, odd) - vert
-    else if(Utilities::isEven(index.x) && Utilities::isOdd(index.y))
+    else if(Utilities::isEven(index.x/vs) && Utilities::isOdd(index.y/vs))
     {
-        ev1 = CMapIndex(index.x, index.y-1);
-        ev2 = CMapIndex(index.x, index.y+1);
+        ev1 = CMapIndex(index.x, index.y-vs);
+        ev2 = CMapIndex(index.x, index.y+vs);
     }
     // (odd, odd) - diag
-    else if(Utilities::isOdd(index.x) && Utilities::isOdd(index.y))
+    else if(Utilities::isOdd(index.x/vs) && Utilities::isOdd(index.y/vs))
     {
-        ev1 = CMapIndex(index.x-1, index.y+1);
-        ev2 = CMapIndex(index.x+1, index.y-1);
+        ev1 = CMapIndex(index.x-vs, index.y+vs);
+        ev2 = CMapIndex(index.x+vs, index.y-vs);
     }
     else
     {
@@ -128,19 +130,18 @@ void Loop::setEdgeVertexPosition(ACM* acm, CMap* cm, CMapIndex index)
 void Loop::setCoarseVertexPositions(ACM * acm)
 {
     ACM::CMapIter c_it;
+    int vs;
     // for each connectivity map
     for (c_it = acm->cm_begin(); c_it != acm->cm_end(); c_it++)
     {
+        vs = c_it->vectorScale*2;
         // for each even vertex
-        for (int i = 0; i < c_it->cm.size(); i++)
+        for (int i = 0; i < c_it->cm.size(); i+=vs)
         {
-            for (int j = 0; j < c_it->cm.at(i).size(); j++)
+            for (int j = 0; j < c_it->cm.at(i).size(); j+=vs)
             {
                 CMapIndex index(i, j);
-                if (Utilities::isEven(i) && Utilities::isEven(j))
-                {
-                    setCoarseVertexVertexPosition(acm, &(*c_it), index);
-                }
+                setCoarseVertexVertexPosition(acm, &(*c_it), index);
             }
         }
     }
@@ -177,16 +178,18 @@ void Loop::setCoarseVertexVertexPosition(ACM* acm, CMap* cm, CMapIndex index)
 void Loop::setCoarseEdgesDetails(ACM *acm)
 {
     ACM::CMapIter c_it;
+    int vs;
     // for each connectivity map
     for (c_it = acm->cm_begin(); c_it != acm->cm_end(); c_it++)
     {
+        vs = c_it->vectorScale;
         // for each even vertex
-        for (int i = 0; i < c_it->cm.size(); i++)
+        for (int i = 0; i < c_it->cm.size(); i+=vs)
         {
-            for (int j = 0; j < c_it->cm.at(i).size(); j++)
+            for (int j = 0; j < c_it->cm.at(i).size(); j+=vs)
             {
                 CMapIndex index(i, j);
-                if (!(Utilities::isEven(i) && Utilities::isEven(j)))
+                if (!(Utilities::isEven(i/vs) && Utilities::isEven(j/vs)))
                 {
                     setCoarseEdgeDetails(acm, &(*c_it), index);
                 }
@@ -199,24 +202,25 @@ void Loop::setCoarseEdgeDetails(ACM *acm, CMap* cm, CMapIndex index)
 {
     // do remaining odd verts
     CMapIndex ev1, ev2;
+    int vs = cm->vectorScale;
     VertexHandle vh = cm->cm.at(index.x).at(index.y);
     // (odd, even) - horizontal
-    if(Utilities::isOdd(index.x) && Utilities::isEven(index.y))
+    if(Utilities::isOdd(index.x/vs) && Utilities::isEven(index.y/vs))
     {
-        ev1 = CMapIndex(index.x-1, index.y);
-        ev2 = CMapIndex(index.x+1, index.y);
+        ev1 = CMapIndex(index.x-vs, index.y);
+        ev2 = CMapIndex(index.x+vs, index.y);
     }
     // (even, odd) - vert
-    else if(Utilities::isEven(index.x) && Utilities::isOdd(index.y))
+    else if(Utilities::isEven(index.x/vs) && Utilities::isOdd(index.y/vs))
     {
-        ev1 = CMapIndex(index.x, index.y-1);
-        ev2 = CMapIndex(index.x, index.y+1);
+        ev1 = CMapIndex(index.x, index.y-vs);
+        ev2 = CMapIndex(index.x, index.y+vs);
     }
     // (odd, odd) - diag
-    else if(Utilities::isOdd(index.x) && Utilities::isOdd(index.y))
+    else if(Utilities::isOdd(index.x/vs) && Utilities::isOdd(index.y/vs))
     {
-        ev1 = CMapIndex(index.x-1, index.y+1);
-        ev2 = CMapIndex(index.x+1, index.y-1);
+        ev1 = CMapIndex(index.x-vs, index.y+vs);
+        ev2 = CMapIndex(index.x+vs, index.y-vs);
     }
     else
     {
@@ -237,7 +241,7 @@ void Loop::setCoarseEdgeDetails(ACM *acm, CMap* cm, CMapIndex index)
     // E` = (3/8)* [V1 + V2] + (1/8)*[V3 + V4]
     //            pos = (3.0/8.0)*v1v2 + (1.0/8.0)*v3v4;
     edgeVert = (3.0/8.0)*(*v1 + *v2) + (1.0/8.0)*(*v3 + *v4);
-    changes[vh] = Vertex();
+    changes[vh] = edgeVert;
     // di = fi - fi'
     //                    TriMesh::Point fi, fi_hat;
     //                    fi = mesh->point(*vertIter);
@@ -279,22 +283,25 @@ void Loop::updateValues(ACM* acm)
     {
         *v_it = changes[v_it->idx];
     }
+    changes.clear();
 }
 
 void Loop::addDetails(ACM* acm)
 {
     ACM::CMapIter c_it;
+    int vs;
     // for each connectivity map
     for (c_it = acm->cm_begin(); c_it != acm->cm_end(); c_it++)
     {
+        vs = c_it->vectorScale;
         // for each even vertex
-        for (int i = 0; i < c_it->cm.size(); i++)
+        for (int i = 0; i < c_it->cm.size(); i+=vs)
         {
-            for (int j = 0; j < c_it->cm.at(i).size(); j++)
+            for (int j = 0; j < c_it->cm.at(i).size(); j+=vs)
             {
                 CMapIndex index(i, j);
                 VertexHandle vh = c_it->cm.at(index.x).at(index.y);
-                if (Utilities::isEven(i) && Utilities::isEven(j))
+                if (Utilities::isEven(i/vs) && Utilities::isEven(j/vs))
                 {
                     // determine new location
                     std::vector<VertexHandle> neighbours;
