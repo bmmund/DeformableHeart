@@ -24,8 +24,9 @@ void Loop::subdivide(ACM* acm)
 void Loop::decompose(ACM* acm)
 {
     setCoarseVertexPositions(acm);
-    //setCoarseEdgesDetails(acm);
+    updateValues(acm);
     acm->increaseVectorScale();
+    setCoarseEdgesDetails(acm);
     updateValues(acm);
 }
 
@@ -182,7 +183,7 @@ void Loop::setCoarseEdgesDetails(ACM *acm)
     // for each connectivity map
     for (c_it = acm->cm_begin(); c_it != acm->cm_end(); c_it++)
     {
-        vs = c_it->vectorScale;
+        vs = c_it->vectorScale/2;
         // for each even vertex
         for (int i = 0; i < c_it->cm.size(); i+=vs)
         {
@@ -202,7 +203,7 @@ void Loop::setCoarseEdgeDetails(ACM *acm, CMap* cm, CMapIndex index)
 {
     // do remaining odd verts
     CMapIndex ev1, ev2;
-    int vs = cm->vectorScale;
+    int vs = cm->vectorScale/2;
     VertexHandle vh = cm->cm.at(index.x).at(index.y);
     // (odd, even) - horizontal
     if(Utilities::isOdd(index.x/vs) && Utilities::isEven(index.y/vs))
@@ -233,7 +234,7 @@ void Loop::setCoarseEdgeDetails(ACM *acm, CMap* cm, CMapIndex index)
     Vertex* v2;
     Vertex* v3;
     Vertex* v4;
-
+    Vertex fi = *(acm->getVertex(vh));
     v1 = acm->getVertex(edgeNeighbours.at(0));
     v2 = acm->getVertex(edgeNeighbours.at(1));
     v3 = acm->getVertex(edgeNeighbours.at(2));
@@ -241,7 +242,7 @@ void Loop::setCoarseEdgeDetails(ACM *acm, CMap* cm, CMapIndex index)
     // E` = (3/8)* [V1 + V2] + (1/8)*[V3 + V4]
     //            pos = (3.0/8.0)*v1v2 + (1.0/8.0)*v3v4;
     edgeVert = (3.0/8.0)*(*v1 + *v2) + (1.0/8.0)*(*v3 + *v4);
-    changes[vh] = edgeVert;
+    changes[vh] = fi - edgeVert;
     // di = fi - fi'
     //                    TriMesh::Point fi, fi_hat;
     //                    fi = mesh->point(*vertIter);
@@ -278,10 +279,10 @@ void Loop::preComputeWeights(int maxValence)
 
 void Loop::updateValues(ACM* acm)
 {
-    ACM::VertexIter v_it;
-    for(v_it = acm->v_begin(); v_it != acm->v_end(); v_it++)
+    std::map<VertexHandle, Vertex>::iterator m_it;
+    for(m_it = changes.begin(); m_it != changes.end(); m_it++)
     {
-        *v_it = changes[v_it->idx];
+        (*acm->getVertex(m_it->first)) = m_it->second;
     }
     changes.clear();
 }

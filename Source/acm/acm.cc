@@ -178,7 +178,7 @@ void ACM::refine()
     {
         if(cm.vectorScale > 1)
         {
-            //cm.vectorScale = std::max((cm.vectorScale / 2), 1);
+//            cm.vectorScale = std::max((cm.vectorScale / 2), 1);
             continue;
         }
 
