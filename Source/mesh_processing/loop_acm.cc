@@ -1,8 +1,16 @@
 #include "loop_acm.hpp"
 #include "utilities.hpp"
 Loop::Loop()
+    : acm(nullptr),
+      subd_depth(0)
 {
     preComputeWeights(6);
+}
+
+Loop::Loop(ACM* acm)
+{
+    Loop();
+    this->acm = acm;
 }
 
 Loop::~Loop()
@@ -10,7 +18,13 @@ Loop::~Loop()
 
 }
 
-void Loop::subdivide(ACM* acm)
+void Loop::attach(ACM* acm)
+{
+    this->acm = acm;
+    subd_depth = 0;
+}
+
+void Loop::subdivide()
 {
     // prepare enough space
     acm->refine();
@@ -19,15 +33,20 @@ void Loop::subdivide(ACM* acm)
     acm->reduceVectorScale();
     addDetails(acm);
     updateValues(acm);
+    subd_depth++;
 }
 
-void Loop::decompose(ACM* acm)
+void Loop::decompose()
 {
-    setCoarseVertexPositions(acm);
-    updateValues(acm);
-    acm->increaseVectorScale();
-    setCoarseEdgesDetails(acm);
-    updateValues(acm);
+    if(subd_depth > 0)
+    {
+        setCoarseVertexPositions(acm);
+        updateValues(acm);
+        acm->increaseVectorScale();
+        setCoarseEdgesDetails(acm);
+        updateValues(acm);
+        subd_depth--;
+    }
 }
 
 void Loop::setNewVertexPositions(ACM * acm)

@@ -8,11 +8,15 @@ class Loop
 {
 public:
     Loop();
+    Loop(ACM* acm);
     ~Loop();
-    void subdivide(ACM* acm);
-    void decompose(ACM* acm);
+    void attach(ACM* acm);
+    void subdivide();
+    void decompose();
 
 private:
+    ACM* acm;
+    int subd_depth;
     std::map<int, float> weights; // valence, weight
     std::map<VertexHandle, Vertex> changes;
     void setNewVertexPositions(ACM* acm);
