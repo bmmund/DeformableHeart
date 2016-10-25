@@ -8,8 +8,8 @@ Loop::Loop()
 }
 
 Loop::Loop(ACM* acm)
+    : Loop()
 {
-    Loop();
     this->acm = acm;
 }
 
